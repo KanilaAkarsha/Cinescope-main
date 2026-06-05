@@ -1,0 +1,11 @@
+export default function DashboardLayout({ children }) {
+  return (
+   <div className="bg-amber-400 min-h-screen flex flex-row">
+    <div className="bg-green-400 flex-2">sidebar</div>
+    <div className="bg-orange-400 flex-10 flex flex-col">
+      <div className="bg-red-400 flex-1">header</div>
+      <div className="bg-purple-400 flex-10">{children}</div>
+      </div>
+    </div>
+  );
+}

@@ -333,10 +333,7 @@ export default function ProfilePage() {
                   }}>
                   <AvatarImage
                     src={
-                      profile.avatarUrl ||
-                      user?.profilePicture ||
-                      user?.image ||
-                      "/placeholder.svg?height=128&width=128"
+                      profile.avatarUrl || user?.profilePicture || user?.image
                     }
                     alt={
                       user?.name || `${profile.firstName} ${profile.lastName}`

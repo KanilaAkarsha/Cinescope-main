@@ -145,7 +145,12 @@ export const updateUser = async (req, res) => {
     }
 
     // Only allow password change if it's the user themselves
-    if (targetUserId === userId && current_password && new_password && confirm_password) {
+    if (
+      targetUserId === userId &&
+      current_password &&
+      new_password &&
+      confirm_password
+    ) {
       const isMatch = await user.comparePassword(current_password);
       if (!isMatch) {
         return res.status(400).json({ message: "Invalid current password" });
@@ -201,6 +206,7 @@ export const getAdminStats = async (req, res) => {
 export const getAllUsersForAdmin = async (req, res) => {
   try {
     const allUsers = await users.find().select("-password");
+    console.log("Fetched users len for admin:", allUsers.length);
     return res.status(200).json({ users: allUsers });
   } catch (error) {
     console.error("Error fetching all users:", error);
@@ -228,17 +234,32 @@ export const getAdminAnalytics = async (req, res) => {
     // Get movies with reviews
     const movies = await Movie.find();
     let totalReviews = 0;
-    const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 };
+    const ratingCounts = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+    };
     const genreCounts = {};
     let sumRating = 0;
     let moviesWithRating = 0;
 
     movies.forEach((m) => {
       totalReviews += m.reviews.length;
-      
+
       // Genre distribution
-      const movieGenres = Array.isArray(m.genre) ? m.genre : (m.genre ? [m.genre] : []);
-      movieGenres.forEach(g => {
+      const movieGenres = Array.isArray(m.genre)
+        ? m.genre
+        : m.genre
+          ? [m.genre]
+          : [];
+      movieGenres.forEach((g) => {
         genreCounts[g] = (genreCounts[g] || 0) + 1;
       });
 
@@ -254,15 +275,16 @@ export const getAdminAnalytics = async (req, res) => {
       }
     });
 
-    const averageRating = moviesWithRating > 0 ? sumRating / moviesWithRating : 0;
+    const averageRating =
+      moviesWithRating > 0 ? sumRating / moviesWithRating : 0;
 
     // Top movies by reviews (as a proxy for views since we don't have views yet)
     const topMovies = movies
       .sort((a, b) => b.reviews.length - a.reviews.length)
       .slice(0, 5)
-      .map(m => ({
+      .map((m) => ({
         title: m.title,
-        views: m.reviews.length * 10 + 50 // Mocking views based on reviews
+        views: m.reviews.length * 10 + 50, // Mocking views based on reviews
       }));
 
     const analytics = {
@@ -282,15 +304,15 @@ export const getAdminAnalytics = async (req, res) => {
         { month: "May", views: 189 },
         { month: "Jun", views: 239 },
       ],
-      genreDistribution: Object.keys(genreCounts).map(name => ({
+      genreDistribution: Object.keys(genreCounts).map((name) => ({
         name,
-        count: genreCounts[name]
+        count: genreCounts[name],
       })),
-      ratingDistribution: Object.keys(ratingCounts).map(rating => ({
+      ratingDistribution: Object.keys(ratingCounts).map((rating) => ({
         rating,
-        count: ratingCounts[rating]
+        count: ratingCounts[rating],
       })),
-      topMovies
+      topMovies,
     };
 
     return res.status(200).json({ success: true, analytics });

@@ -31,7 +31,9 @@ export default function AdminNav() {
     }
   };
 
-  const initials = (user?.name || "U")
+  const initials = (
+    user?.name || `${user?.first_name} ${user?.last_name}`.trim()
+  )
     .split(" ")
     .map((p) => p[0])
     .join("")
@@ -43,13 +45,8 @@ export default function AdminNav() {
       <DropdownMenuTrigger asChild>
         <Avatar className="h-10 w-10 border-2 border-primary">
           <AvatarImage
-            src={
-              user?.image ||
-              user?.profilePicture ||
-              `${user?.first_name}`.charAt(0).toUpperCase() +
-                `${user?.last_name}`.charAt(0).toUpperCase()
-            }
-            alt={user?.name || "User Avatar"}
+            src={user?.image || user?.profilePicture}
+            alt={`${user?.first_name} ${user?.last_name}`.trim()}
           />
           <AvatarFallback className="bg-primary text-white">
             {initials}

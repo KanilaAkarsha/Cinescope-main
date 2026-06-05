@@ -77,7 +77,10 @@ export default function UsersPageClient({ initialUsers = [] }) {
   const filteredUsers = users
     .filter(
       (user) =>
-        (roleFilter === "all" || user.role === roleFilter) &&
+        (roleFilter === "admin" ||
+          roleFilter === "moderator" ||
+          roleFilter === "user" ||
+          user.role === roleFilter) &&
         (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.email.toLowerCase().includes(searchQuery.toLowerCase())),
     )

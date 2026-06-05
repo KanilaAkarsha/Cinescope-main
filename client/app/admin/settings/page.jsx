@@ -56,12 +56,16 @@ export default function SettingsPage() {
     try {
       const res = await updateProfile({
         id: user._id,
+        siteName: settings.siteName,
+        siteDescription: settings.siteDescription,
         language: settings.language,
         timezone: settings.timezone,
       });
 
       if (res.success) {
-        dispatch(login({ user: res.data, token: localStorage.getItem("token") }));
+        dispatch(
+          login({ user: res.data, token: localStorage.getItem("token") }),
+        );
         toast.success("Settings saved successfully");
       } else {
         toast.error(res.message || "Failed to save settings");
@@ -98,8 +102,7 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
-            className="flex items-center gap-2"
-          >
+            className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
@@ -198,8 +201,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
-                className="ml-auto"
-              >
+                className="ml-auto">
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -220,8 +222,7 @@ export default function SettingsPage() {
                 <Label>Theme Mode</Label>
                 <RadioGroup
                   defaultValue="system"
-                  className="flex flex-col space-y-1"
-                >
+                  className="flex flex-col space-y-1">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="light" id="theme-light" />
                     <Label htmlFor="theme-light">Light</Label>
@@ -262,8 +263,7 @@ export default function SettingsPage() {
                                     : color === "orange"
                                       ? "hsl(24.6, 95%, 53.1%)"
                                       : "hsl(316.6, 73.3%, 52.5%)",
-                        }}
-                      >
+                        }}>
                         {color === "blue" && (
                           <div className="flex h-full items-center justify-center">
                             <Check className="h-4 w-4 text-white" />
@@ -303,8 +303,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
-                className="ml-auto"
-              >
+                className="ml-auto">
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -398,8 +397,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
-                className="ml-auto"
-              >
+                className="ml-auto">
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -500,8 +498,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
-                className="ml-auto"
-              >
+                className="ml-auto">
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -589,8 +586,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
-                className="ml-auto"
-              >
+                className="ml-auto">
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>

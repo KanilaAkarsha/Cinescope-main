@@ -33,7 +33,7 @@ const Footer = () => {
       </div>
       <div className="border-t-2 border-primary/20" />
       <div className="container dark:text-white flex h-35  items-center justify-between dark:bg-black">
-        <div className="text-stone-700 dark:text-white text-sm">
+        <div className="text-stone-700 dark:text-white sm:text-sm text-xs">
           © 2025 CineScope. All rights reserved.
         </div>
         <div className="text-stone-700 dark:text-white gap-7">

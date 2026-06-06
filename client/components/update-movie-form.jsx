@@ -13,7 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllMovieStatus, getAllYears, cn } from "@/lib/utils";
+import {
+  getAllMovieStatus,
+  getAllYears,
+  cn,
+  getAllLanguages,
+} from "@/lib/utils";
 import { getAllGenres } from "@/lib/data";
 import { Textarea } from "@/components/ui/textarea";
 import { updateMovie } from "@/services/movie.service";
@@ -103,19 +108,19 @@ export default function UpdateMovieForm({ showDialog, movie }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formState, setFormState] = useState({
     title: movie?.title || "",
-    year: movie?.year || null,
-    director: movie?.directors?.at(0) || "",
+    releaseYear: movie?.releaseYear || movie?.releaseDate || null,
+    director: movie?.director || movie?.directors?.at(0) || "",
     // retain for backward compatibility but we use tag arrays below
     cast: Array.isArray(movie?.cast) ? movie.cast.join(", ") : "",
     genre: Array.isArray(movie?.genres) ? movie.genres.join(", ") : "",
-    rating: movie?.imdb?.rating || "",
+    rating: movie?.imdb?.rating || movie?.rating || "",
     runtime: movie?.runtime || "",
     overview: movie?.plot || "",
     poster: movie?.poster || "",
     backdrop: movie?.backdrop || "",
     movieFileLink: movie?.movieFileLink || movie?.fileLink || "",
-    trailerVideoLink:
-      movie?.trailerVideoLink || movie?.trailerLink || movie?.videoLink || "",
+    trailer: movie?.trailer || movie?.trailerLink || movie?.videoLink || "",
+    language: movie?.language || "",
     status: movie?.status || "",
     releaseDate: movie?.releaseDate || "",
   });
@@ -133,6 +138,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
   const years = getAllYears();
   const statuses = getAllMovieStatus();
   const allGenres = getAllGenres();
+  const languages = getAllLanguages();
 
   const toggleGenre = (genre) => {
     setGenreTags((prev) =>
@@ -160,8 +166,8 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
     const movieDoc = {
       title: formData.get("title"),
-      year: formData.get("year"),
-      directors: [formData.get("director")],
+      releaseYear: formData.get("year"),
+      director: [formData.get("director")],
       cast: castTags?.length ? castTags : multiValueFields.cast,
       genres: genreTags?.length ? genreTags : multiValueFields.genres,
       imdb: { rating: Number(formData.get("rating")) },
@@ -170,7 +176,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
       poster: formData.get("poster"),
       backdrop: formData.get("backdrop"),
       movieFileLink: formData.get("movieFileLink"),
-      trailerVideoLink: formData.get("trailerVideoLink"),
+      trailer: formData.get("trailerVideoLink"),
       status: formData.get("status"),
       releaseDate: formData.get("releaseDate"),
     };
@@ -377,6 +383,34 @@ export default function UpdateMovieForm({ showDialog, movie }) {
             value={formState?.trailerVideoLink}
             onChange={handleChange}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="language">
+            Language<span className="text-red-500">*</span>
+          </Label>
+          <Select
+            id="language"
+            name="language"
+            value={formState?.language}
+            onValueChange={(value) =>
+              setFormState((prevState) => ({
+                ...prevState,
+                language: value,
+              }))
+            }
+            required>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((language, index) => (
+                <SelectItem key={`${language}-${index}`} value={language}>
+                  {language}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

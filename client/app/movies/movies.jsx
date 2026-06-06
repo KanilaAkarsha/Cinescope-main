@@ -29,8 +29,6 @@ function MoviesWithSuspense() {
             Our section of must-watch films
           </p>
         </div>
-
-        <Button variant="outline">View All</Button>
       </div>
 
       {/* Movie search */}

@@ -13,7 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllMovieStatus, getAllYears, cn } from "@/lib/utils";
+import {
+  getAllMovieStatus,
+  getAllYears,
+  cn,
+  getAllLanguages,
+} from "@/lib/utils";
 import { getAllGenres } from "@/lib/data";
 import { Textarea } from "@/components/ui/textarea";
 import { createMovie } from "@/services/movie.service";
@@ -90,6 +95,7 @@ export default function AddMovieForm({ showDialog }) {
   const years = getAllYears();
   const allGenres = getAllGenres();
   const statuses = getAllMovieStatus();
+  const languages = getAllLanguages();
 
   const toggleGenre = (genre) => {
     setGenreTags((prev) =>
@@ -293,13 +299,18 @@ export default function AddMovieForm({ showDialog }) {
           <Label htmlFor="language">
             Language<span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="language"
-            name="language"
-            placeholder="Movie Language"
-            defaultValue="English"
-            required
-          />
+          <Select id="language" name="language" required>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((language, index) => (
+                <SelectItem key={`${language}-${index}`} value={language}>
+                  {language}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

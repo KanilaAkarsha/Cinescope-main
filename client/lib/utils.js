@@ -7,25 +7,48 @@ export function cn(...inputs) {
 
 export function getAllYears() {
   return Array.from({ length: 100 }, (_, i) =>
-    (new Date().getFullYear() - i).toString()
+    (new Date().getFullYear() - i).toString(),
   );
 }
 
-export function getAllGenres() {
+export function getAllLanguages() {
   return [
-    "Action",
-    "Adventure",
-    "Comedy",
-    "Drama",
-    "Fantasy",
-    "Horror",
-    "Musicals",
-    "Mystery",
-    "Romance",
-    "Sci-Fi",
-    "Sports",
-    "Thriller",
-    "Western",
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Japanese",
+    "Chinese",
+    "Hindi",
+    "Tamil",
+    "Telugu",
+    "Malayalam",
+    "Bengali",
+    "Russian",
+    "Korean",
+    "Italian",
+    "Portuguese",
+    "Arabic",
+    "Turkish",
+    "Vietnamese",
+    "Indonesian",
+    "Thai",
+    "Polish",
+    "Dutch",
+    "Sinhalese",
+    "Swedish",
+    "Danish",
+    "Norwegian",
+    "Finnish",
+    "Greek",
+    "Hebrew",
+    "Czech",
+    "Hungarian",
+    "Romanian",
+    "Bulgarian",
+    "Serbian",
+    "Croatian",
+    "Ukrainian",
   ];
 }
 

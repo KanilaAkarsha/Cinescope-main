@@ -37,13 +37,17 @@ const Footer = () => {
           © 2025 CineScope. All rights reserved.
         </div>
         <div className="text-stone-700 dark:text-white gap-7">
-          <Link href="/terms" className="text-sm hover:underline">
+          <Link href="/terms" className=" text-xs sm:text-sm hover:underline">
             Terms
           </Link>
-          <Link href="/privacy" className="ml-4 text-sm hover:underline">
+          <Link
+            href="/privacy"
+            className="ml-4 text-xs sm:text-sm hover:underline">
             Privacy
           </Link>
-          <Link href="/cookies" className="ml-4 text-sm hover:underline">
+          <Link
+            href="/cookies"
+            className="ml-4 text-xs sm:text-sm hover:underline">
             Cookies
           </Link>
         </div>

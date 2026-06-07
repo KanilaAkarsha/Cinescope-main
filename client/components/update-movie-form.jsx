@@ -108,8 +108,14 @@ export default function UpdateMovieForm({ showDialog, movie }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formState, setFormState] = useState({
     title: movie?.title || "",
-    releaseYear: movie?.releaseYear || movie?.releaseDate || null,
-    director: movie?.director || movie?.directors?.at(0) || "",
+    year:
+      movie?.releaseYears ||
+      movie?.years ||
+      movie?.year ||
+      movie?.releaseDate ||
+      movie?.releaseYear ||
+      "",
+    director: movie?.director || movie?.directors || "",
     // retain for backward compatibility but we use tag arrays below
     cast: Array.isArray(movie?.cast) ? movie.cast.join(", ") : "",
     genre: Array.isArray(movie?.genres) ? movie.genres.join(", ") : "",
@@ -166,7 +172,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
     const movieDoc = {
       title: formData.get("title"),
-      releaseYear: formData.get("year"),
+      year: formData.get("year"),
       director: [formData.get("director")],
       cast: castTags?.length ? castTags : multiValueFields.cast,
       genres: genreTags?.length ? genreTags : multiValueFields.genres,
@@ -380,7 +386,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
             id="trailerVideoLink"
             name="trailerVideoLink"
             placeholder="URL to trailer video or YouTube link"
-            value={formState?.trailerVideoLink}
+            value={formState?.trailer}
             onChange={handleChange}
           />
         </div>

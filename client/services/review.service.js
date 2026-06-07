@@ -12,11 +12,17 @@ export const getReviewsForMovie = async (movieId) => {
   }
 };
 
-export const createReview = async (movieId, reviewData) => {
+export const createReview = async ({ movieId, rating, comment, userId }) => {
   try {
-    const { data } = await API.post(`/api/movies/${movieId}/reviews`, reviewData);
+    console.log("Sending review:", { movieId, rating, comment }); // ← debug
+    const { data } = await API.post(`/api/movies/${movieId}/reviews`, {
+      userId,
+      rating,
+      comment,
+    });
     return { success: true, data: data.review };
   } catch (error) {
+    console.error("createReview error:", error.response?.data); // ← debug
     return {
       success: false,
       message: error.response?.data?.message || error.message,
@@ -32,7 +38,8 @@ export const getAdminReviews = async () => {
       movieId: review.movieId,
       movieTitle: review.movieTitle,
       userId: review.userId?._id,
-      userName: `${review.userId?.first_name || "Unknown"} ${review.userId?.last_name || ""}`.trim(),
+      userName:
+        `${review.userId?.first_name || "Unknown"} ${review.userId?.last_name || ""}`.trim(),
       userAvatar: review.userId?.profilePicture,
       rating: review.rating,
       comment: review.comment,

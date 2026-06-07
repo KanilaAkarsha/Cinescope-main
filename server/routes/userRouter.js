@@ -9,12 +9,14 @@ import {
   getAllUsersForAdmin,
   deleteUserByAdmin,
   getAdminAnalytics,
+  getAllUsers,
 } from "../controllers/userControllers.js";
 import protect from "../middleware/authMiddleware.js";
 
 const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
+userRouter.get("/search", getAllUsers);
 userRouter.post("/login", loginUser);
 userRouter.get("/me", protect, getCurrentUser);
 userRouter.get("/:id", protect, getUserById);

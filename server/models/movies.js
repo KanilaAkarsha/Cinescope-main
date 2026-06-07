@@ -69,11 +69,12 @@ const moviesSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  // models/Movie.js — clean schema, no userName/userAvatar
   reviews: [
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "users",
         required: true,
       },
       rating: {

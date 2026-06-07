@@ -12,6 +12,18 @@ export const getUsers = async () => {
   }
 };
 
+export const searchUsers = async (query) => {
+  try {
+    const { data } = await API.get(`/api/users/search?query=${query}`);
+    return { success: true, data: data.users };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+    };
+  }
+};
+
 export const deleteUser = async (id) => {
   try {
     await API.delete(`/api/users/admin/users/${id}`);

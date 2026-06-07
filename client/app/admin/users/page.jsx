@@ -1,11 +1,7 @@
-import { getUsers } from "@/services/user.service";
-import UsersPageClient from "./users-page-client";
+import UsersData from "./user-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
-  const { data: users = [] } = await getUsers();
-  console.log(users);
-
-  return <UsersPageClient initialUsers={users} />;
+  return <UsersData />;
 }

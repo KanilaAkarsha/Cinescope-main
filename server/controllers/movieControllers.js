@@ -34,7 +34,8 @@ export const createMovie = async (req, res) => {
     const finalDescription = description || plot || title;
     const finalReleaseYear = releaseYear || year;
     const finalGenre = genre || genres;
-    const finalDirector = director || (Array.isArray(directors) ? directors[0] : directors);
+    const finalDirector =
+      director || (Array.isArray(directors) ? directors[0] : directors);
     const finalCast = cast;
     const finalPlot = plot || description || title;
     const finalPoster = poster;
@@ -290,14 +291,24 @@ export const getReviewsForMovie = async (req, res) => {
       "first_name last_name profilePicture",
     );
 
-    if (movie) {
-      return res.status(200).json({
-        message: "Reviews fetched successfully",
-        reviews: movie.reviews,
-      });
-    } else {
-      return res.status(404).json({ message: "Movie not found" });
-    }
+    if (!movie) return res.status(404).json({ message: "Movie not found" });
+
+    // ✅ Normalize reviews for frontend
+    const reviews = movie.reviews.map((review) => ({
+      _id: review._id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      userName:
+        `${review.userId?.first_name || ""} ${review.userId?.last_name || ""}`.trim() ||
+        "Anonymous",
+      userAvatar: review.userId?.profilePicture || "",
+    }));
+
+    return res.status(200).json({
+      message: "Reviews fetched successfully",
+      reviews,
+    });
   } catch (error) {
     console.error("Error fetching reviews for movie:", error);
     return res.status(400).json({ message: error.message });
@@ -307,35 +318,52 @@ export const getReviewsForMovie = async (req, res) => {
 export const createReviewForMovie = async (req, res) => {
   try {
     const { id: movieId } = req.params;
-    const userId = req.userId;
-    const { rating, comment } = req.body;
+
+    const { rating, comment, userId } = req.body;
+
+    // ✅ Guard against missing userId
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     if (!ObjectId.isValid(movieId)) {
       return res.status(400).json({ message: "Invalid movie id" });
     }
 
     const movie = await Movie.findById(movieId);
-
-    if (!movie) {
-      return res.status(404).json({ message: "Movie not found" });
-    }
+    if (!movie) return res.status(404).json({ message: "Movie not found" });
 
     const newReview = {
-      userId,
-      rating,
-      comment,
+      userId, // ← comes from token via protect middleware
+      rating: Number(rating), // ← cast to number to be safe
+      comment: comment?.trim(),
       createdAt: new Date(),
     };
 
     movie.reviews.push(newReview);
     await movie.save();
 
+    const savedMovie = await Movie.findById(movieId).populate(
+      "reviews.userId",
+      "first_name last_name profilePicture",
+    );
+    const savedReview = savedMovie.reviews[savedMovie.reviews.length - 1];
+
     return res.status(201).json({
       message: "Review created successfully",
-      review: newReview,
+      review: {
+        _id: savedReview._id,
+        rating: savedReview.rating,
+        comment: savedReview.comment,
+        createdAt: savedReview.createdAt,
+        userName:
+          `${savedReview.userId?.first_name || ""} ${savedReview.userId?.last_name || ""}`.trim() ||
+          "Anonymous",
+        userAvatar: savedReview.userId?.profilePicture || "",
+      },
     });
   } catch (error) {
-    console.error("Error creating review for movie:", error);
+    console.error("Error creating review:", error.message);
     return res.status(400).json({ message: error.message });
   }
 };

@@ -102,11 +102,18 @@ const getTrailerEmbedUrl = (url) => {
   }
 };
 
-export default function MovieDetails({ movie, reviews, id }) {
+export default function MovieDetails({
+  movie,
+  reviews,
+  id,
+  isAuthenticated,
+  user,
+}) {
   const isLoading = false;
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [movieReviews, setMovieReviews] = useState(
     Array.isArray(reviews) ? reviews : [],
   );
@@ -145,6 +152,7 @@ export default function MovieDetails({ movie, reviews, id }) {
 
     try {
       const result = await createReview({
+        userId: user._id,
         movieId: id,
         rating,
         comment: reviewText.trim(),
@@ -412,45 +420,59 @@ export default function MovieDetails({ movie, reviews, id }) {
 
                 <div className="mt-8">
                   <h3 className="text-xl font-semibold">Write a Review</h3>
-                  <form
-                    onSubmit={handleSubmitReview}
-                    className="mt-4 space-y-4">
-                    <div>
-                      <div className="mb-2 flex items-center">
-                        <span className="mr-2">Rating:</span>
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setRating(star)}
-                              className="p-1">
-                              <Star
-                                className={`h-5 w-5 ${
-                                  star <= rating
-                                    ? "fill-yellow-500 text-yellow-500"
-                                    : "text-muted-foreground"
-                                }`}
-                              />
-                            </button>
-                          ))}
+                  {isAuthenticated ? (
+                    <form
+                      onSubmit={handleSubmitReview}
+                      className="mt-4 space-y-4">
+                      <div>
+                        <div className="mb-2 flex items-center">
+                          <span className="mr-2">Rating:</span>
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setRating(star)}
+                                className="p-1">
+                                <Star
+                                  className={`h-5 w-5 ${
+                                    star <= rating
+                                      ? "fill-yellow-500 text-yellow-500"
+                                      : "text-muted-foreground"
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                      <Textarea
+                        placeholder="Share your thoughts about the movie..."
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        className="min-h-30"
+                      />
+                      <Button
+                        type="submit"
+                        disabled={
+                          isSubmitting || rating === 0 || !reviewText.trim()
+                        }>
+                        {isSubmitting ? "Submitting..." : "Submit Review"}
+                      </Button>
+                    </form>
+                  ) : (
+                    <div className="mt-4 rounded-lg border p-6 text-center">
+                      <p className="text-muted-foreground">
+                        Please{" "}
+                        <Link
+                          href="/login"
+                          className="text-primary underline underline-offset-4">
+                          login
+                        </Link>{" "}
+                        to write a review.
+                      </p>
                     </div>
-                    <Textarea
-                      placeholder="Share your thoughts about the movie..."
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      className="min-h-30"
-                    />
-                    <Button
-                      type="submit"
-                      disabled={
-                        isSubmitting || rating === 0 || !reviewText.trim()
-                      }>
-                      {isSubmitting ? "Submitting..." : "Submit Review"}
-                    </Button>
-                  </form>
+                  )}
                 </div>
               </div>
             </div>

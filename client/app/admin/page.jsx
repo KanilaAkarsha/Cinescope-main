@@ -20,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import MoviesData from "./movies-data";
 import { getDashboardData } from "@/services/admin.service";
+import TotalMovies from "./total-movies";
+import TotalUsers from "./total-users";
 
 export const dynamic = "force-dynamic";
 
@@ -116,15 +118,7 @@ export default async function AdminDashboard() {
             <Film className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{movies.length}</div>
-            <p className="text-muted-foreground text-xs">
-              {
-                movies.filter(
-                  (movie) => normalizeStatus(movie.status) === "published",
-                ).length
-              }{" "}
-              published
-            </p>
+            <TotalMovies />
           </CardContent>
         </Card>
         <Card>
@@ -133,11 +127,7 @@ export default async function AdminDashboard() {
             <Users className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-muted-foreground text-xs">
-              {users.filter((user) => user.status === "active").length} active
-              users
-            </p>
+            <TotalUsers />
           </CardContent>
         </Card>
         <Card>

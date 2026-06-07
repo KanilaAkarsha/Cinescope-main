@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-export default function UsersPageClient({ initialUsers = [] }) {
+export default function UsersPageClient({ initialUsers }) {
   const formatDate = (iso) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
@@ -77,12 +77,9 @@ export default function UsersPageClient({ initialUsers = [] }) {
   const filteredUsers = users
     .filter(
       (user) =>
-        (roleFilter === "admin" ||
-          roleFilter === "moderator" ||
-          roleFilter === "user" ||
-          user.role === roleFilter) &&
-        (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchQuery.toLowerCase())),
+        (roleFilter === "all" || user.role === roleFilter) &&
+        ((user.name ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (user.email ?? "").toLowerCase().includes(searchQuery.toLowerCase())),
     )
     .sort((a, b) => {
       const aValue = a[sortField];

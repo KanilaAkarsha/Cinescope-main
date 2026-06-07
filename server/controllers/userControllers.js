@@ -203,6 +203,33 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    let filter = {};
+
+    if (query) {
+      filter = {
+        $or: [
+          { first_name: { $regex: query, $options: "i" } },
+          { last_name: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+      };
+    }
+
+    const allUsers = await users
+      .find(filter)
+      .select("-password")
+      .sort({ createdAt: -1 });
+    console.log("Fetched users len:", allUsers.length);
+    return res.status(200).json({ users: allUsers });
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 export const getAllUsersForAdmin = async (req, res) => {
   try {
     const allUsers = await users.find().select("-password");

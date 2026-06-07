@@ -3,6 +3,7 @@ import { getReviewsForMovie } from "@/services/review.service";
 import MovieDetails from "./movie-details";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function MovieDetailsPage({ params }) {
   const { id } = await params;
@@ -10,6 +11,7 @@ export default async function MovieDetailsPage({ params }) {
     getMovieById(id),
     getReviewsForMovie(id),
   ]);
+  const { isAuthenticated, user } = await getCurrentUser();
 
   if (!movie?.success || !movie?.data) {
     return (
@@ -29,6 +31,12 @@ export default async function MovieDetailsPage({ params }) {
 
   // Passing server data to client component
   return (
-    <MovieDetails movie={movie.data} reviews={reviews?.data || []} id={id} />
+    <MovieDetails
+      movie={movie.data}
+      reviews={reviews?.data || []}
+      id={id}
+      isAuthenticated={isAuthenticated}
+      user={user}
+    />
   );
 }

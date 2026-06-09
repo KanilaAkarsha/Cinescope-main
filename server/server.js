@@ -1,9 +1,8 @@
-import dotenv from "dotenv";
+import "dotenv/config"; // ← MUST be first line — loads .env before any imports
 
 import app from "./app.js";
 import connectDB from "./config/db.js";
-
-dotenv.config();
+import "./config/googleStrategy.js"; // now env vars are available
 
 await connectDB();
 const PORT = process.env.PORT || 5001;

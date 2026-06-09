@@ -16,14 +16,14 @@ import protect from "../middleware/authMiddleware.js";
 const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
-userRouter.get("/search", getAllUsers);
 userRouter.post("/login", loginUser);
+userRouter.get("/search", getAllUsers);
 userRouter.get("/me", protect, getCurrentUser);
-userRouter.get("/:id", protect, getUserById);
-userRouter.put("/update", protect, updateUser);
-userRouter.get("/admin/stats", protect, getAdminStats);
-userRouter.get("/admin/users", protect, getAllUsersForAdmin);
+userRouter.put("/update", protect, updateUser); // ✅ before /:id
+userRouter.get("/admin/stats", protect, getAdminStats); // ✅ before /:id
+userRouter.get("/admin/users", protect, getAllUsersForAdmin); // ✅ before /:id
 userRouter.delete("/admin/users/:id", protect, deleteUserByAdmin);
-userRouter.get("/admin/analytics", protect, getAdminAnalytics);
+userRouter.get("/admin/analytics", protect, getAdminAnalytics); // ✅ before /:id
+userRouter.get("/:id", protect, getUserById);
 
 export default userRouter;

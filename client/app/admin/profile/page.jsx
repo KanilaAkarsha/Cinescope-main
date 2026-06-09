@@ -38,13 +38,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { signIn, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/services/admin.service";
-import { useSelector } from "react-redux";
+
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "@/app/app/features/authSlice";
+import { uploadImage } from "@/services/upload.service";
 
 export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const avatarInputRef = useRef(null);
   const reduxUser = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch(); // ← add this
+
   const { data: session } = useSession();
   const user = reduxUser || session?.user;
   const [profile, setProfile] = useState({
@@ -67,27 +72,35 @@ export default function ProfilePage() {
     useState(false);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
-  const handleAvatarUpload = (event) => {
-    const file = event.target.files?.[0];
+  //
 
-    if (!file) {
-      return;
-    }
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((current) => ({
-        ...current,
-        avatarUrl:
-          typeof reader.result === "string" ? reader.result : current.avatarUrl,
-      }));
-    };
-    reader.readAsDataURL(file);
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const result = await uploadImage(file);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      // ✅ store Cloudinary URL instead of base64
+      setProfile((current) => ({ ...current, avatarUrl: result.url }));
+      toast.success("Image uploaded!", { id: toastId });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image.",
+        { id: toastId },
+      );
+    }
 
     event.target.value = "";
   };
@@ -222,9 +235,24 @@ export default function ProfilePage() {
 
       // Merge returned updates into local profile state so UI reflects saved values
       if (result?.data) {
-        setProfile((current) => ({ ...current, ...result.data }));
+        setProfile((current) => ({
+          ...current,
+          avatarUrl: result.data.profilePicture || current.avatarUrl,
+          firstName: result.data.first_name || current.firstName,
+          lastName: result.data.last_name || current.lastName,
+          email: result.data.email || current.email,
+          bio: result.data.bio ?? current.bio,
+          language: result.data.language || current.language,
+          timezone: result.data.timezone || current.timezone,
+          updatedAt: result.data.updatedAt || current.updatedAt,
+        }));
+        dispatch(
+          login({
+            token: localStorage.getItem("token"),
+            user: result.data,
+          }),
+        );
       }
-
       setIsSubmitting(false);
       setIsEditing(false);
       toast.success("Profile updated!", {
@@ -332,12 +360,8 @@ export default function ProfilePage() {
                     }
                   }}>
                   <AvatarImage
-                    src={
-                      profile.avatarUrl || user?.profilePicture || user?.image
-                    }
-                    alt={
-                      user?.name || `${profile.firstName} ${profile.lastName}`
-                    }
+                    src={profile.avatarUrl || ""}
+                    alt={`${profile.firstName} ${profile.lastName}`}
                   />
                   <AvatarFallback className="text-4xl">
                     {profile.firstName?.[0] || user?.name?.[0] || "U"}

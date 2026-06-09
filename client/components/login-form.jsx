@@ -93,26 +93,16 @@ export default function LoginForm() {
     setIsGoogleLoading(true);
 
     try {
-      await signIn.social(
-        {
-          provider: "google",
-          callbackURL: "/",
-        },
-        {
-          onError: (ctx) => {
-            setError({
-              error: true,
-              message: ctx.error.message || "Google login failed",
-            });
-            setIsGoogleLoading(false);
-          },
-        },
-      );
-    } catch {
-      setError({
-        error: true,
-        message: "Google login failed. Please try again later.",
-      });
+      const { data } = await API.post(`/api/users/login/google`); // your Google OAuth endpoint
+      const normalizedUser = data.user || data.User;
+      dispatch(login({ token: data.token, user: normalizedUser }));
+      localStorage.setItem("token", data.token);
+      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+      toast.success(data.message);
+      router.push("/");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
+    } finally {
       setIsGoogleLoading(false);
     }
   };

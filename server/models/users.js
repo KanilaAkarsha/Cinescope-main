@@ -20,6 +20,19 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    googleId: {
+      type: String,
+      default: null,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    avatar: {
+      type: String,
+      default: null,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -27,9 +40,11 @@ const UserSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
+      default: "",
     },
     bio: {
       type: String,
+      default: "",
     },
     language: {
       type: String,

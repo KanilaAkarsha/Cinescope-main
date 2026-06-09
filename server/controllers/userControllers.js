@@ -121,9 +121,9 @@ export const getCurrentUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const userId = req.userId; // Default to current user
+    const userId = req.userId;
     const {
-      id, // If admin wants to update someone else
+      id,
       first_name,
       last_name,
       email,
@@ -144,13 +144,8 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Only allow password change if it's the user themselves
-    if (
-      targetUserId === userId &&
-      current_password &&
-      new_password &&
-      confirm_password
-    ) {
+    // Password change
+    if (current_password && new_password && confirm_password) {
       const isMatch = await user.comparePassword(current_password);
       if (!isMatch) {
         return res.status(400).json({ message: "Invalid current password" });
@@ -161,22 +156,24 @@ export const updateUser = async (req, res) => {
       user.password = await bcrypt.hash(new_password, 8);
     }
 
-    user.first_name = first_name || user.first_name;
-    user.last_name = last_name || user.last_name;
-    user.email = email || user.email;
-    user.role = role || user.role;
-    user.profilePicture = profilePicture || user.profilePicture;
-    user.bio = bio !== undefined ? bio : user.bio;
-    user.language = language || user.language;
-    user.timezone = timezone || user.timezone;
+    // ✅ Use !== undefined so empty strings and falsy values still save
+    if (first_name !== undefined) user.first_name = first_name;
+    if (last_name !== undefined) user.last_name = last_name;
+    if (email !== undefined) user.email = email;
+    if (role !== undefined) user.role = role;
+    if (profilePicture !== undefined) user.profilePicture = profilePicture; // ✅ fixed
+    if (bio !== undefined) user.bio = bio; // ✅ fixed
+    if (language !== undefined) user.language = language;
+    if (timezone !== undefined) user.timezone = timezone;
+    user.updatedAt = new Date();
 
     await user.save();
 
-    user.password = undefined; // Hide password in response
+    user.password = undefined;
     return res.status(200).json({ message: "User updated successfully", user });
   } catch (error) {
     console.error("Error updating user:", error);
-    return res.status(400).json({ message: "Server error" });
+    return res.status(400).json({ message: error.message });
   }
 };
 

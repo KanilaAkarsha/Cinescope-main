@@ -32,11 +32,11 @@ const Footer = () => {
         </div>
       </div>
       <div className="border-t-2 border-primary/20" />
-      <div className="container dark:text-white flex h-35  items-center justify-between dark:bg-black">
+      <div className="container dark:text-white sm:flex mt-15 sm:mt-0  h-35  items-center justify-between dark:bg-black">
         <div className="text-stone-700 dark:text-white sm:text-sm text-xs">
           © 2025 CineScope. All rights reserved.
         </div>
-        <div className="text-stone-700 dark:text-white gap-7">
+        <div className="text-stone-700 dark:text-white gap-2 sm:gap-7">
           <Link href="/terms" className=" text-xs sm:text-sm hover:underline">
             Terms
           </Link>

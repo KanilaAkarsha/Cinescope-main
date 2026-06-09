@@ -34,18 +34,24 @@ export const updateRole = async (id, role) => {
   }
 };
 
+// services/admin.service.js
 export const updateProfile = async (profileData) => {
   try {
+    console.log("profilePicture length:", profileData.profilePicture?.length);
+    console.log(
+      "profilePicture preview:",
+      profileData.profilePicture?.substring(0, 50),
+    );
     const { data } = await API.put("/api/users/update", profileData);
     return { success: true, data: data.user };
   } catch (error) {
+    console.error("updateProfile error:", error.response?.data);
     return {
       success: false,
       message: error.response?.data?.message || error.message,
     };
   }
 };
-
 export const getDashboardData = async () => {
   try {
     const [statsResponse, usersResponse, moviesResponse] = await Promise.all([

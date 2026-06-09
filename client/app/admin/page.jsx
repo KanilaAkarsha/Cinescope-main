@@ -278,9 +278,15 @@ export default async function AdminDashboard() {
 
       <Tabs defaultValue="recent-movies" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="recent-movies">Recent Movies</TabsTrigger>
-          <TabsTrigger value="recent-users">Recent Users</TabsTrigger>
-          <TabsTrigger value="recent-reviews">Recent Reviews</TabsTrigger>
+          <TabsTrigger value="recent-movies " className="text-xs sm:text-sm">
+            Recent Movies
+          </TabsTrigger>
+          <TabsTrigger value="recent-users" className="text-xs sm:text-sm">
+            Recent Users
+          </TabsTrigger>
+          <TabsTrigger value="recent-reviews" className="text-xs sm:text-sm">
+            Recent Reviews
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="recent-movies" className="space-y-4">
           <MoviesData />

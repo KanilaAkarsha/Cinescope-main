@@ -108,27 +108,17 @@ export default function UpdateMovieForm({ showDialog, movie }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formState, setFormState] = useState({
     title: movie?.title || "",
-    year:
-      movie?.releaseYears ||
-      movie?.years ||
-      movie?.year ||
-      movie?.releaseDate ||
-      movie?.releaseYear ||
-      "",
-    director: movie?.director || movie?.directors || "",
-    // retain for backward compatibility but we use tag arrays below
-    cast: Array.isArray(movie?.cast) ? movie.cast.join(", ") : "",
-    genre: Array.isArray(movie?.genres) ? movie.genres.join(", ") : "",
-    rating: movie?.imdb?.rating || movie?.rating || "",
+    year: String(movie?.releaseYear || ""),
+    director: movie?.director || "",
+    rating: movie?.rating || "",
     runtime: movie?.runtime || "",
-    overview: movie?.plot || "",
+    overview: movie?.description || movie?.plot || "",
     poster: movie?.poster || "",
     backdrop: movie?.backdrop || "",
-    movieFileLink: movie?.movieFileLink || movie?.fileLink || "",
-    trailer: movie?.trailer || movie?.trailerLink || movie?.videoLink || "",
+    movieFileLink: movie?.downloadLink || "",
+    trailer: movie?.trailer || "",
     language: movie?.language || "",
     status: movie?.status || "",
-    releaseDate: movie?.releaseDate || "",
   });
 
   const [castTags, setCastTags] = useState(

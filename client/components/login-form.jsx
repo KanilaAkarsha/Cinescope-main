@@ -37,25 +37,15 @@ export default function LoginForm() {
 
   const validateForm = (email, password) => {
     if (email === "") {
-      setError({
-        error: true,
-        message: "Email is required",
-      });
+      setError({ error: true, message: "Email is required" });
       return false;
     } else if (password === "") {
-      setError({
-        error: true,
-        message: "Password is required",
-      });
+      setError({ error: true, message: "Password is required" });
       return false;
     } else if (!EMAIL_REGEX.test(email)) {
-      setError({
-        error: true,
-        message: "Invalid email format",
-      });
+      setError({ error: true, message: "Invalid email format" });
       return false;
     }
-
     setError(DEFAULT_ERROR);
     return true;
   };
@@ -88,97 +78,123 @@ export default function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setError(DEFAULT_ERROR);
-    setIsGoogleLoading(true);
-
-    try {
-      const { data } = await API.post(`/api/users/login/google`); // your Google OAuth endpoint
-      const normalizedUser = data.user || data.User;
-      dispatch(login({ token: data.token, user: normalizedUser }));
-      localStorage.setItem("token", data.token);
-      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      toast.success(data.message);
-      router.push("/");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || error.message);
-    } finally {
-      setIsGoogleLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    window.google.accounts.id.initialize({
+      client_id:
+        "62555845260-j9oggg4marqs7h75nelakge0np69s1gp.apps.googleusercontent.com",
+      callback: async (response) => {
+        const res = await API.post("/api/users/google-login", {
+          credential: response.credential,
+        });
+        dispatch(login(res.data));
+        router.push("/");
+      },
+    });
+    window.google.accounts.id.prompt();
   };
 
   return (
-    <div className="flex flex-col">
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to Your Account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
-                    Forgot your password?
-                  </Link>
+    // Outer wrapper: centers the card vertically and horizontally on all screen sizes,
+    // adds horizontal padding on mobile so the card doesn't touch screen edges
+    <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+      {/* Card is full-width on mobile, capped at sm on larger screens */}
+      <div className="w-full max-w-sm">
+        <Card className="shadow-md">
+          <CardHeader className="space-y-1 text-center sm:text-left">
+            <CardTitle className="text-2xl font-bold">
+              Login to Your Account
+            </CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="flex flex-col gap-5">
+                {/* Email field */}
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter your email"
+                    required
+                    // Larger tap target on mobile via taller height
+                    className="h-11 sm:h-10"
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-              <div className="flex justify-center ">
+
+                {/* Password field */}
+                <div className="grid gap-2">
+                  {/* Stack label + forgot link: row on sm+, column on xs */}
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="#"
+                      className="text-sm text-muted-foreground underline-offset-4 hover:underline self-start sm:self-auto">
+                      Forgot your password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    required
+                    className="h-11 sm:h-10"
+                  />
+                </div>
+
+                {/* Inline error message */}
                 {error.error && (
-                  <span className="text-red-600 text-xs text-center animate-pulse duration-700">
+                  <p className="text-center text-xs text-red-600 animate-pulse">
                     {error.message}
-                  </span>
+                  </p>
                 )}
+
+                {/* Action buttons */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    type="submit"
+                    className="w-full h-11 sm:h-10"
+                    disabled={isLoading}>
+                    {isLoading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Login
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-11 sm:h-10"
+                    disabled={isLoading || isGoogleLoading}
+                    onClick={handleGoogleLogin}>
+                    {isGoogleLoading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Login with Google
+                  </Button>
+                </div>
+
+                {/* Sign-up link */}
+                <p className="text-center text-sm text-muted-foreground">
+                  Don&apos;t have an account?{" "}
+                  <Link
+                    href="../signup"
+                    className="font-medium text-foreground underline underline-offset-4 hover:text-primary">
+                    Sign up
+                  </Link>
+                </p>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="animate-spin" />} Login
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading || isGoogleLoading}
-                  onClick={handleGoogleLogin}>
-                  {isGoogleLoading && <Loader2 className="animate-spin" />}
-                  Login with Google
-                </Button>
-              </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="../signup" className="underline underline-offset-4">
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

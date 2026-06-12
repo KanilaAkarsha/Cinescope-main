@@ -162,29 +162,37 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-
-    // prefer tag states if present, fallback to comma-separated form values
-    const multiValueFields = buildMultiValueFields({
-      castInput: formData.get("cast") || castTags.join(", "),
-      genreInput: formData.get("genre") || genreTags.join(", "),
-    });
 
     const movieDoc = {
-      title: formData.get("title"),
-      year: formData.get("year"),
-      director: [formData.get("director")],
-      cast: castTags?.length ? castTags : multiValueFields.cast,
-      genres: genreTags?.length ? genreTags : multiValueFields.genres,
-      imdb: { rating: Number(formData.get("rating")) },
-      runtime: formData.get("runtime"),
-      plot: formData.get("overview"),
-      poster: formData.get("poster"),
-      backdrop: formData.get("backdrop"),
-      movieFileLink: formData.get("movieFileLink"),
-      trailer: formData.get("trailerVideoLink"),
-      status: formData.get("status"),
-      releaseDate: formData.get("releaseDate"),
+      title: formState.title,
+
+      releaseYear: Number(formState.year),
+
+      director: formState.director,
+
+      cast: castTags,
+
+      genre: genreTags,
+
+      rating: Number(formState.rating),
+
+      runtime: Number(formState.runtime),
+
+      description: formState.overview,
+
+      plot: formState.overview,
+
+      poster: formState.poster,
+
+      backdrop: formState.backdrop,
+
+      downloadLink: formState.movieFileLink || "N/A",
+
+      trailer: formState.trailer || "N/A",
+
+      status: formState.status,
+
+      language: formState.language,
     };
 
     setIsSubmitting(true);
@@ -194,10 +202,11 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
       if (response?.success) {
         router.refresh();
+
         showDialog(false);
       }
-    } catch {
-      console.log("Error in handle submit");
+    } catch (error) {
+      console.error("Update failed:", error);
     } finally {
       setIsSubmitting(false);
     }

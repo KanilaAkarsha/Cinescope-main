@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
@@ -13,199 +13,146 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getAllMovieStatus,
-  getAllYears,
-  cn,
-  getAllLanguages,
-} from "@/lib/utils";
-import { getAllGenres } from "@/lib/data";
+
 import { Textarea } from "@/components/ui/textarea";
 import { updateMovie } from "@/services/movie.service";
 
-const parseCommaSeparated = (value) =>
-  String(value || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+import { getAllMovieStatus, getAllYears, getAllLanguages } from "@/lib/utils";
+import { getAllGenres } from "@/lib/data";
 
-const buildMultiValueFields = ({ castInput, genreInput }) => {
-  const parsedCast = parseCommaSeparated(castInput);
-  const parsedGenres = parseCommaSeparated(genreInput);
+function TagInput({ tags, setTags, placeholder }) {
+  const [value, setValue] = useState("");
 
-  return {
-    cast: parsedCast,
-    genres: parsedGenres,
-  };
-};
-
-function TagInput({ tags, setTags, placeholder, className }) {
-  const [inputValue, setInputValue] = useState("");
-
-  const addTag = (value) => {
-    const v = String(value || "").trim();
-    if (!v) return;
-    if (tags.includes(v)) return;
-    setTags((prev) => [...prev, v]);
-  };
-
-  const removeTag = (index) => {
-    setTags((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const onKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag(inputValue);
-      setInputValue("");
-    }
-    if (e.key === "Backspace" && !inputValue) {
-      // remove last
-      setTags((prev) => prev.slice(0, -1));
-    }
-  };
-
-  const onBlur = () => {
-    if (inputValue) {
-      addTag(inputValue);
-      setInputValue("");
-    }
+  const addTag = (v) => {
+    v = v.trim();
+    if (!v || tags.includes(v)) return;
+    setTags([...tags, v]);
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-md border border-primary/20  px-3 py-2">
-      {tags.map((tag, idx) => (
-        <span key={`${tag}-${idx}`}>
-          <span className="truncate max-w-32">{tag}</span>
+    <div className="flex flex-wrap gap-2 border p-2 rounded">
+      {tags.map((t, i) => (
+        <span key={i} className="bg-gray-200 px-2 py-1 rounded">
+          {t}
           <button
             type="button"
-            onClick={() => removeTag(idx)}
-            aria-label={`Remove ${tag}`}
-            className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white text-[10px]">
+            onClick={() => setTags(tags.filter((_, idx) => idx !== i))}
+            className="ml-2">
             ×
           </button>
         </span>
       ))}
+
       <input
-        className={cn(
-          "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 min-w-0 flex-1 bg-transparent text-base outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-0",
-          "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-          className,
-        )}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
+        value={value}
         placeholder={placeholder}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            addTag(value);
+            setValue("");
+          }
+        }}
+        className="flex-1 outline-none"
       />
     </div>
   );
 }
 
-export default function UpdateMovieForm({ showDialog, movie }) {
+export default function UpdateMovieForm({ movie, showDialog }) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formState, setFormState] = useState({
-    title: movie?.title || "",
-    year: movie?.releaseYear ? String(movie.releaseYear) : "",
-    director: Array.isArray(movie?.director)
-      ? movie.director[0]
-      : movie?.director || "",
-    rating: movie?.rating || "",
-    runtime: movie?.runtime || "",
-    overview: movie?.description || movie?.plot || "",
-    poster: movie?.poster || "",
-    backdrop: movie?.backdrop || "",
-    movieFileLink: movie?.downloadLink || "",
-    trailer: movie?.trailer || movie?.trailerVideoLink || "",
-    language: movie?.language || "",
-    status: movie?.status || "",
-  });
-
-  const [castTags, setCastTags] = useState(
-    Array.isArray(movie?.cast)
-      ? movie.cast
-      : parseCommaSeparated(movie?.cast || movie?.cast?.toString?.() || ""),
-  );
-  const [genreTags, setGenreTags] = useState(
-    Array.isArray(movie?.genres)
-      ? movie.genres
-      : parseCommaSeparated(movie?.genres || movie?.genre || ""),
-  );
   const years = getAllYears();
   const statuses = getAllMovieStatus();
-  const allGenres = getAllGenres();
   const languages = getAllLanguages();
+  const allGenres = getAllGenres();
 
-  const toggleGenre = (genre) => {
-    setGenreTags((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
-    );
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
+  const [formState, setFormState] = useState({
+    title: "",
+    year: "",
+    director: "",
+    rating: "",
+    runtime: "",
+    overview: "",
+    poster: "",
+    backdrop: "",
+    movieFileLink: "",
+    trailer: "",
+    language: "",
+    status: "",
+  });
+
+  const [castTags, setCastTags] = useState([]);
+  const [genreTags, setGenreTags] = useState([]);
+
+  // ✅ LOAD DATA ON OPEN
+  useEffect(() => {
+    if (!movie) return;
+
+    setFormState({
+      title: movie.title || "",
+      year: movie.releaseYear ? String(movie.releaseYear) : "",
+      director: movie.director || "",
+      rating: movie.rating || "",
+      runtime: movie.runtime || "",
+      overview: movie.description || movie.plot || "",
+      poster: movie.poster || "",
+      backdrop: movie.backdrop || "",
+      movieFileLink: movie.downloadLink || "",
+      trailer: movie.trailer || "",
+      language: movie.language || "",
+      status: movie.status || "",
+    });
+
+    setCastTags(movie.cast || []);
+    setGenreTags(movie.genre || []);
+  }, [movie]);
+
+  const updateField = (key, value) => {
+    setFormState((prev) => ({
+      ...prev,
+      [key]: value,
     }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const toggleGenre = (g) => {
+    setGenreTags((prev) =>
+      prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     const movieDoc = {
       title: formState.title,
-
       description: formState.overview,
-
       releaseYear: Number(formState.year),
-
       genre: genreTags,
-
       director: formState.director,
-
       cast: castTags,
-
       plot: formState.overview,
-
       poster: formState.poster,
-
       backdrop: formState.backdrop,
-
       rating: Number(formState.rating),
-
       trailer: formState.trailer,
-
       language: formState.language,
-
       status: formState.status,
-
       runtime: Number(formState.runtime),
-
       downloadLink: formState.movieFileLink,
     };
 
     setIsSubmitting(true);
 
-    console.log("Movie ID:", movie?._id || movie?.id);
-    console.log("Movie Data:", movieDoc);
-
     try {
-      const response = await updateMovie(
-        movie?._id || movie?.id,
+      const res = await updateMovie(movie?._id || movie?.id, movieDoc);
 
-        movieDoc,
-      );
-
-      if (response?.success) {
+      if (res?.success) {
         router.refresh();
-
         showDialog(false);
       }
-    } catch (error) {
-      console.error("Update failed:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -213,257 +160,172 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
   return (
     <form
-      className="space-y-4 max-h-[70vh] overflow-auto pr-5"
-      onSubmit={handleSubmit}>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="title">
-            Title<span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="title"
-            name="title"
-            placeholder="Movie title"
-            value={formState?.title}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="year">
-            Year<span className="text-red-500">*</span>
-          </Label>
-          <Select
-            id="year"
-            name="year"
-            value={formState.year || ""}
-            onValueChange={(value) =>
-              setFormState((prevState) => ({
-                ...prevState,
-                year: value,
-              }))
-            }
-            required>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Please select year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((year, index) => (
-                <SelectItem key={`${year}-${index}`} value={String(year)}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="director">Director</Label>
-          <Input
-            id="director"
-            name="director"
-            value={formState.director}
-            onChange={handleChange}
-            placeholder="Director Name"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="cast">Cast</Label>
-          <div>
-            <TagInput
-              tags={castTags}
-              setTags={setCastTags}
-              placeholder="Type a name and press Enter or comma"
-            />
-            <input type="hidden" name="cast" value={castTags.join(", ")} />
-          </div>
-        </div>
-        <div className="col-span-2 space-y-2">
-          <Label>
-            Genre<span className="text-red-500">*</span>
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            {allGenres.map((genre) => (
-              <button
-                key={genre}
-                type="button"
-                onClick={() => toggleGenre(genre)}
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-all ${
-                  genreTags.includes(genre)
-                    ? "bg-primary text-white"
-                    : "border border-primary/20 text-foreground hover:border-primary/50"
-                }`}>
-                {genre}
-              </button>
-            ))}
-          </div>
-          <input type="hidden" name="genre" value={genreTags.join(", ")} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="rating">
-            IMDb Rating<span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="rating"
-            name="rating"
-            placeholder="IMDb Rating (0.0 - 10.0)"
-            type="number"
-            max="10"
-            min="0"
-            step="0.1"
-            value={formState?.rating}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="runtime">
-            Runtime<span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="runtime"
-            name="runtime"
-            placeholder="Runtime in Minutes"
-            type="number"
-            max="1000"
-            min="0"
-            step="1"
-            value={formState?.runtime}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="overview">Overview</Label>
-        <Textarea
-          id="overview"
-          name="overview"
-          placeholder="Movie description"
-          className="h-25"
-          value={formState?.overview}
-          onChange={handleChange}
-          required
+      onSubmit={handleSubmit}
+      className="space-y-4 max-h-[70vh] overflow-auto">
+      {/* TITLE */}
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={formState.title}
+          onChange={(e) => updateField("title", e.target.value)}
         />
       </div>
 
+      {/* YEAR + DIRECTOR */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="poster">
-            Poster URL<span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="poster"
-            name="poster"
-            placeholder="URL to Poster image"
-            value={formState?.poster}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="backdrop">
-            Backdrop URL<span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="backdrop"
-            name="backdrop"
-            placeholder="URL to Backdrop image"
-            value={formState?.backdrop}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="movieFileLink">Movie File Link</Label>
-          <Input
-            id="movieFileLink"
-            name="movieFileLink"
-            placeholder="URL to downloadable movie file"
-            value={formState?.movieFileLink}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="trailerVideoLink">Trailer Video Link</Label>
-          <Input
-            id="trailer"
-            name="trailer"
-            value={formState.trailer}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="language">
-            Language<span className="text-red-500">*</span>
-          </Label>
+        <div>
+          <Label>Year</Label>
           <Select
-            id="language"
-            name="language"
-            value={formState?.language}
-            onValueChange={(value) =>
-              setFormState((prevState) => ({
-                ...prevState,
-                language: value,
-              }))
-            }
-            required>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Language" />
+            value={formState.year}
+            onValueChange={(v) => updateField("year", v)}>
+            <SelectTrigger>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {languages.map((language, index) => (
-                <SelectItem key={`${language}-${index}`} value={language}>
-                  {language}
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="status">
-            Status<span className="text-red-500">*</span>
-          </Label>
+        <div>
+          <Label>Director</Label>
+          <Input
+            value={formState.director}
+            onChange={(e) => updateField("director", e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* CAST */}
+      <div>
+        <Label>Cast</Label>
+        <TagInput tags={castTags} setTags={setCastTags} />
+      </div>
+
+      {/* GENRE */}
+      <div>
+        <Label>Genre</Label>
+        <div className="flex flex-wrap gap-2">
+          {allGenres.map((g) => (
+            <button
+              type="button"
+              key={g}
+              onClick={() => toggleGenre(g)}
+              className={`px-3 py-1 border rounded ${
+                genreTags.includes(g) ? "bg-black text-white" : ""
+              }`}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* RATING + RUNTIME */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Rating</Label>
+          <Input
+            type="number"
+            value={formState.rating}
+            onChange={(e) => updateField("rating", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label>Runtime</Label>
+          <Input
+            type="number"
+            value={formState.runtime}
+            onChange={(e) => updateField("runtime", e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* OVERVIEW */}
+      <div>
+        <Label>Overview</Label>
+        <Textarea
+          value={formState.overview}
+          onChange={(e) => updateField("overview", e.target.value)}
+        />
+      </div>
+
+      {/* MEDIA */}
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          placeholder="Poster"
+          value={formState.poster}
+          onChange={(e) => updateField("poster", e.target.value)}
+        />
+
+        <Input
+          placeholder="Backdrop"
+          value={formState.backdrop}
+          onChange={(e) => updateField("backdrop", e.target.value)}
+        />
+
+        <Input
+          placeholder="Movie File"
+          value={formState.movieFileLink}
+          onChange={(e) => updateField("movieFileLink", e.target.value)}
+        />
+
+        <Input
+          placeholder="Trailer"
+          value={formState.trailer}
+          onChange={(e) => updateField("trailer", e.target.value)}
+        />
+      </div>
+
+      {/* LANGUAGE + STATUS */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Language</Label>
           <Select
-            id="status"
-            name="status"
-            value={formState?.status}
-            onValueChange={(value) =>
-              setFormState((prevState) => ({
-                ...prevState,
-                status: value,
-              }))
-            }
-            required>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
+            value={formState.language}
+            onValueChange={(v) => updateField("language", v)}>
+            <SelectTrigger />
             <SelectContent>
-              {statuses.map((status, index) => (
-                <SelectItem key={`${status}-${index}`} value={status}>
-                  {status}
+              {languages.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {l}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label>Status</Label>
+          <Select
+            value={formState.status}
+            onValueChange={(v) => updateField("status", v)}>
+            <SelectTrigger />
+            <SelectContent>
+              {statuses.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
       </div>
+
+      {/* BUTTONS */}
       <DialogFooter>
         <Button
-          type="reset"
+          type="button"
           variant="outline"
-          className="min-w-25.5 "
-          disabled={isSubmitting}
           onClick={() => showDialog(false)}>
           Cancel
         </Button>
-        <Button type="submit" className="min-w-25.5" disabled={isSubmitting}>
+
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Updating..." : "Update Movie"}
         </Button>
       </DialogFooter>

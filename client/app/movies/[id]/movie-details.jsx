@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Download, Star } from "lucide-react";
+import { ArrowLeft, Book, Clock, Download, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -269,6 +269,10 @@ export default function MovieDetails({
                     <div className="flex items-center">
                       <Clock className="text-muted-foreground mr-1 h-4 w-4" />
                       <span>{movie.runtime} min</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Book className="text-muted-foreground mr-1 h-4 w-4" />
+                      <span>{movie.language}</span>
                     </div>
                   </div>
 

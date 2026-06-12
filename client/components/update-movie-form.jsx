@@ -108,15 +108,17 @@ export default function UpdateMovieForm({ showDialog, movie }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formState, setFormState] = useState({
     title: movie?.title || "",
-    year: String(movie?.releaseYear || ""),
-    director: movie?.director || "",
+    year: movie?.releaseYear ? String(movie.releaseYear) : "",
+    director: Array.isArray(movie?.director)
+      ? movie.director[0]
+      : movie?.director || "",
     rating: movie?.rating || "",
     runtime: movie?.runtime || "",
     overview: movie?.description || movie?.plot || "",
     poster: movie?.poster || "",
     backdrop: movie?.backdrop || "",
     movieFileLink: movie?.downloadLink || "",
-    trailer: movie?.trailer || "",
+    trailer: movie?.trailer || movie?.trailerVideoLink || "",
     language: movie?.language || "",
     status: movie?.status || "",
   });
@@ -234,7 +236,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
           <Select
             id="year"
             name="year"
-            value={formState?.year}
+            value={formState.year || ""}
             onValueChange={(value) =>
               setFormState((prevState) => ({
                 ...prevState,
@@ -247,7 +249,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
             </SelectTrigger>
             <SelectContent>
               {years.map((year, index) => (
-                <SelectItem key={`${year}-${index}`} value={year}>
+                <SelectItem key={`${year}-${index}`} value={String(year)}>
                   {year}
                 </SelectItem>
               ))}
@@ -261,7 +263,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
           <Input
             id="director"
             name="director"
-            value={formState?.director}
+            value={formState.director}
             onChange={handleChange}
             placeholder="Director Name"
           />

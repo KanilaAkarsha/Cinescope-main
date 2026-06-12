@@ -166,19 +166,15 @@ export default function UpdateMovieForm({ showDialog, movie }) {
     const movieDoc = {
       title: formState.title,
 
+      description: formState.overview,
+
       releaseYear: Number(formState.year),
+
+      genre: genreTags,
 
       director: formState.director,
 
       cast: castTags,
-
-      genre: genreTags,
-
-      rating: Number(formState.rating),
-
-      runtime: Number(formState.runtime),
-
-      description: formState.overview,
 
       plot: formState.overview,
 
@@ -186,19 +182,30 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
       backdrop: formState.backdrop,
 
-      downloadLink: formState.movieFileLink || "N/A",
+      rating: Number(formState.rating),
 
-      trailer: formState.trailer || "N/A",
+      trailer: formState.trailer,
+
+      language: formState.language,
 
       status: formState.status,
 
-      language: formState.language,
+      runtime: Number(formState.runtime),
+
+      downloadLink: formState.movieFileLink,
     };
 
     setIsSubmitting(true);
 
+    console.log("Movie ID:", movie?._id || movie?.id);
+    console.log("Movie Data:", movieDoc);
+
     try {
-      const response = await updateMovie(movieDoc, movie?.id);
+      const response = await updateMovie(
+        movie?._id || movie?.id,
+
+        movieDoc,
+      );
 
       if (response?.success) {
         router.refresh();
@@ -392,10 +399,9 @@ export default function UpdateMovieForm({ showDialog, movie }) {
         <div className="space-y-2">
           <Label htmlFor="trailerVideoLink">Trailer Video Link</Label>
           <Input
-            id="trailerVideoLink"
-            name="trailerVideoLink"
-            placeholder="URL to trailer video or YouTube link"
-            value={formState?.trailer}
+            id="trailer"
+            name="trailer"
+            value={formState.trailer}
             onChange={handleChange}
           />
         </div>

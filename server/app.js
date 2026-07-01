@@ -4,7 +4,6 @@ import userRouter from "./routes/userRouter.js";
 import movieRouter from "./routes/movieRouter.js";
 import uploadRouter from "./routes/uploadRouter.js";
 import passport from "passport";
-import googleAuthRouter from "./routes/googleAuth.routes.js"; // new file
 
 const app = express();
 
@@ -22,7 +21,6 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(passport.initialize());
 
 app.use("/api/users", userRouter);
-app.use("/api/users", googleAuthRouter);
 app.use("/api/movies", movieRouter);
 app.use("/api/upload", uploadRouter);
 

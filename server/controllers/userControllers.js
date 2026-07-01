@@ -1,13 +1,133 @@
-import users from "../models/users.js";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import users from "../models/users.js";
+import Movie from "../models/movies.js";
+import { generateToken, sanitizeUser } from "../utils/auth.js";
+import { verifyGoogleCredential } from "../utils/google.js";
 
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || "default_secret", {
-    expiresIn: "7d",
-  });
+const normalizeGoogleName = (name) => {
+  const parts = String(name || "Google User")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return {
+    first_name: parts[0] || "Google",
+    last_name: parts.slice(1).join(" ") || "User",
+  };
 };
-// Implement registerUser function
+
+const isAdminUser = async (userId) => {
+  const user = await users.findById(userId).select("role");
+  return user?.role === "admin";
+};
+
+const updatePasswordIfRequested = async (
+  user,
+  currentPassword,
+  newPassword,
+  confirmPassword,
+) => {
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return;
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+
+  if (!isMatch) {
+    throw new Error("Invalid current password");
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new Error("New passwords do not match");
+  }
+
+  user.password = await bcrypt.hash(newPassword, 8);
+};
+
+const applyProfileUpdates = (user, updates) => {
+  const fields = [
+    "first_name",
+    "last_name",
+    "email",
+    "role",
+    "profilePicture",
+    "bio",
+    "language",
+    "timezone",
+  ];
+
+  fields.forEach((field) => {
+    if (updates[field] !== undefined) {
+      user[field] = updates[field];
+    }
+  });
+
+  user.updatedAt = new Date();
+};
+
+const getMovieGenres = (movie) => {
+  if (Array.isArray(movie.genre)) {
+    return movie.genre;
+  }
+
+  if (movie.genre) {
+    return [movie.genre];
+  }
+
+  return [];
+};
+
+export const googleLoginUser = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    const profile = await verifyGoogleCredential(credential);
+    const email = String(profile.email || "")
+      .trim()
+      .toLowerCase();
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "Google account email is required" });
+    }
+
+    const names = normalizeGoogleName(profile.name);
+    let user = await users.findOne({ email });
+
+    if (user) {
+      user.googleId = user.googleId || profile.sub;
+      user.authProvider = "google";
+      user.avatar = user.avatar || profile.picture || "";
+      user.first_name = user.first_name || names.first_name;
+      user.last_name = user.last_name || names.last_name;
+      await user.save();
+    } else {
+      user = await users.create({
+        first_name: names.first_name,
+        last_name: names.last_name,
+        email,
+        googleId: profile.sub,
+        authProvider: "google",
+        avatar: profile.picture || "",
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    console.error("Error logging in with Google:", error);
+    return res
+      .status(400)
+      .json({ message: error.message || "Google login failed" });
+  }
+};
 
 export const registerUser = async (req, res) => {
   try {
@@ -39,9 +159,11 @@ export const registerUser = async (req, res) => {
 
     const token = generateToken(newUser._id);
 
-    res
-      .status(201)
-      .json({ message: "User registered successfully", token, user: newUser });
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: sanitizeUser(newUser),
+    });
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(400).json({ message: error.message });
@@ -73,9 +195,12 @@ export const loginUser = async (req, res) => {
     }
 
     const token = generateToken(user._id);
-    user.password = undefined; // Hide password in response
 
-    return res.status(200).json({ message: "Login successful", token, user });
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: sanitizeUser(user),
+    });
   } catch (error) {
     console.error("Error logging in user:", error);
     return res.status(400).json({ message: "Server error" });
@@ -85,12 +210,19 @@ export const loginUser = async (req, res) => {
 //controller for getting user by id
 export const getUserById = async (req, res) => {
   try {
-    const userId = req.userId; // Assuming userId is set in the request object after authentication
-    const user = await users.findById(userId);
+    const { id } = req.params;
+    const userId = id || req.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    const user = await users.findById(userId).select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    user.password = undefined; // Hide password in response
+
     return res.status(200).json({ user });
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -138,39 +270,51 @@ export const updateUser = async (req, res) => {
     } = req.body;
 
     const targetUserId = id || userId;
+    const isSelfUpdate = String(targetUserId) === String(userId);
+    const requestingUserIsAdmin = await isAdminUser(userId);
+
+    if (!isSelfUpdate && !requestingUserIsAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    if (role !== undefined && !requestingUserIsAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
     const user = await users.findById(targetUserId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Password change
-    if (current_password && new_password && confirm_password) {
-      const isMatch = await user.comparePassword(current_password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid current password" });
-      }
-      if (new_password !== confirm_password) {
-        return res.status(400).json({ message: "New passwords do not match" });
-      }
-      user.password = await bcrypt.hash(new_password, 8);
+    try {
+      await updatePasswordIfRequested(
+        user,
+        current_password,
+        new_password,
+        confirm_password,
+      );
+    } catch (passwordError) {
+      return res.status(400).json({ message: passwordError.message });
     }
 
-    // ✅ Use !== undefined so empty strings and falsy values still save
-    if (first_name !== undefined) user.first_name = first_name;
-    if (last_name !== undefined) user.last_name = last_name;
-    if (email !== undefined) user.email = email;
-    if (role !== undefined) user.role = role;
-    if (profilePicture !== undefined) user.profilePicture = profilePicture; // ✅ fixed
-    if (bio !== undefined) user.bio = bio; // ✅ fixed
-    if (language !== undefined) user.language = language;
-    if (timezone !== undefined) user.timezone = timezone;
-    user.updatedAt = new Date();
+    applyProfileUpdates(user, {
+      first_name,
+      last_name,
+      email,
+      role,
+      profilePicture,
+      bio,
+      language,
+      timezone,
+    });
 
     await user.save();
 
-    user.password = undefined;
-    return res.status(200).json({ message: "User updated successfully", user });
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: sanitizeUser(user),
+    });
   } catch (error) {
     console.error("Error updating user:", error);
     return res.status(400).json({ message: error.message });
@@ -180,7 +324,6 @@ export const updateUser = async (req, res) => {
 export const getAdminStats = async (req, res) => {
   try {
     const totalUsers = await users.countDocuments();
-    const Movie = (await import("../models/movies.js")).default;
     const totalMovies = await Movie.countDocuments();
 
     const movies = await Movie.find();
@@ -219,7 +362,6 @@ export const getAllUsers = async (req, res) => {
       .find(filter)
       .select("-password")
       .sort({ createdAt: -1 });
-    console.log("Fetched users len:", allUsers.length);
     return res.status(200).json({ users: allUsers });
   } catch (error) {
     console.error("Error fetching all users:", error);
@@ -230,7 +372,6 @@ export const getAllUsers = async (req, res) => {
 export const getAllUsersForAdmin = async (req, res) => {
   try {
     const allUsers = await users.find().select("-password");
-    console.log("Fetched users len for admin:", allUsers.length);
     return res.status(200).json({ users: allUsers });
   } catch (error) {
     console.error("Error fetching all users:", error);
@@ -252,8 +393,6 @@ export const deleteUserByAdmin = async (req, res) => {
 export const getAdminAnalytics = async (req, res) => {
   try {
     const totalUsers = await users.countDocuments();
-    const Movie = (await import("../models/movies.js")).default;
-    const totalMovies = await Movie.countDocuments();
 
     // Get movies with reviews
     const movies = await Movie.find();
@@ -278,17 +417,13 @@ export const getAdminAnalytics = async (req, res) => {
       totalReviews += m.reviews.length;
 
       // Genre distribution
-      const movieGenres = Array.isArray(m.genre)
-        ? m.genre
-        : m.genre
-          ? [m.genre]
-          : [];
+      const movieGenres = getMovieGenres(m);
       movieGenres.forEach((g) => {
         genreCounts[g] = (genreCounts[g] || 0) + 1;
       });
 
       // Rating distribution
-      const rating = m.rating || (m.imdb && m.imdb.rating);
+      const rating = m.rating || m.imdb?.rating;
       if (rating) {
         const roundedRating = Math.round(rating);
         if (roundedRating >= 1 && roundedRating <= 10) {
@@ -303,13 +438,14 @@ export const getAdminAnalytics = async (req, res) => {
       moviesWithRating > 0 ? sumRating / moviesWithRating : 0;
 
     // Top movies by reviews (as a proxy for views since we don't have views yet)
-    const topMovies = movies
-      .sort((a, b) => b.reviews.length - a.reviews.length)
-      .slice(0, 5)
-      .map((m) => ({
-        title: m.title,
-        views: m.reviews.length * 10 + 50, // Mocking views based on reviews
-      }));
+    const moviesSortedByReviews = [...movies].sort(
+      (a, b) => b.reviews.length - a.reviews.length,
+    );
+
+    const topMovies = moviesSortedByReviews.slice(0, 5).map((m) => ({
+      title: m.title,
+      views: m.reviews.length * 10 + 50, // Mocking views based on reviews
+    }));
 
     const analytics = {
       totalViews: totalReviews * 15, // Mocking views

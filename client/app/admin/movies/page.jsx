@@ -13,11 +13,12 @@ export default function MoviesPage({ searchParams }) {
         </div>
         <AddMovieDialog />
       </div>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div>Loading...</div>}>
         <MovieSelectors />
       </Suspense>
-
-      <MoviesData searchParams={searchParams} />
+      <Suspense fallback={<div>Loading movies...</div>}>
+        <MoviesData searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

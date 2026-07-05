@@ -1,22 +1,16 @@
-export const verifyGoogleCredential = async (credential) => {
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export async function verifyGoogleCredential(credential) {
   if (!credential) {
     throw new Error("Google credential is required");
   }
 
-  const response = await fetch(
-    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
-  );
+  const ticket = await client.verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
 
-  if (!response.ok) {
-    throw new Error("Invalid Google credential");
-  }
-
-  const profile = await response.json();
-  const expectedClientId = process.env.GOOGLE_CLIENT_ID;
-
-  if (expectedClientId && profile.aud !== expectedClientId) {
-    throw new Error("Google credential audience mismatch");
-  }
-
-  return profile;
-};
+  return ticket.getPayload();
+}

@@ -8,16 +8,28 @@ import { useSearchParams } from "next/navigation";
 export default function MoviesList() {
   const [movies, setAllMovies] = useState([]);
   const searchParams = useSearchParams();
+  
   const query = searchParams.get("query") || "";
+  const genre = searchParams.get("genre") || "";
+  const year = searchParams.get("year") || "";
+  const status = searchParams.get("status") || "";
+  const sort = searchParams.get("sort") || "";
 
   useEffect(() => {
-    loadUserMovies(query);
-  }, [query]);
+    loadUserMovies({ query, genre, year, status, sort });
+  }, [query, genre, year, status, sort]);
 
-  const loadUserMovies = async (searchQuery) => {
+  const loadUserMovies = async (params) => {
     try {
-      const url = searchQuery 
-        ? `/api/movies/search?query=${encodeURIComponent(searchQuery)}`
+      const queryParams = new URLSearchParams();
+      if (params.query) queryParams.set("query", params.query);
+      if (params.genre) queryParams.set("genre", params.genre);
+      if (params.year) queryParams.set("year", params.year);
+      if (params.status) queryParams.set("status", params.status);
+      if (params.sort) queryParams.set("sort", params.sort);
+
+      const url = queryParams.toString() 
+        ? `/api/movies/search?${queryParams.toString()}`
         : "/api/movies";
       const { data } = await API.get(url);
       setAllMovies(data.movies);

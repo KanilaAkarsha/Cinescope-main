@@ -51,7 +51,7 @@ export default function MovieTable({ movies }) {
       setIsLoading(false);
       toggleDeleteDialog(false);
       setSelectedMovie(null);
-      router.refresh();
+      window.location.reload();
     }
   };
 

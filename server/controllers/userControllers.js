@@ -4,6 +4,8 @@ import users from "../models/users.js";
 import Movie from "../models/movies.js";
 import { generateToken, sanitizeUser } from "../utils/auth.js";
 import { verifyGoogleCredential } from "../utils/google.js";
+import jwt from "jsonwebtoken";
+
 
 const normalizeGoogleName = (name) => {
   const parts = String(name || "Google User")
@@ -52,6 +54,7 @@ const applyProfileUpdates = (user, updates) => {
     "email",
     "role",
     "profilePicture",
+    "avatar",
     "bio",
     "language",
     "timezone",
@@ -62,6 +65,13 @@ const applyProfileUpdates = (user, updates) => {
       user[field] = updates[field];
     }
   });
+
+  // Ensure consistency between avatar and profilePicture if one is updated
+  if (updates.profilePicture !== undefined) {
+    user.avatar = updates.profilePicture;
+  } else if (updates.avatar !== undefined) {
+    user.profilePicture = updates.avatar;
+  }
 
   user.updatedAt = new Date();
 };
@@ -81,51 +91,33 @@ const getMovieGenres = (movie) => {
 export const googleLoginUser = async (req, res) => {
   try {
     const { credential } = req.body;
-
     const profile = await verifyGoogleCredential(credential);
-    const email = String(profile.email || "")
-      .trim()
-      .toLowerCase();
 
-    if (!email) {
-      return res
-        .status(400)
-        .json({ message: "Google account email is required" });
-    }
+    let user = await users.findOne({ email: profile.email });
 
-    const names = normalizeGoogleName(profile.name);
-    let user = await users.findOne({ email });
-
-    if (user) {
-      user.googleId = user.googleId || profile.sub;
-      user.authProvider = "google";
-      user.avatar = user.avatar || profile.picture || "";
-      user.first_name = user.first_name || names.first_name;
-      user.last_name = user.last_name || names.last_name;
-      await user.save();
-    } else {
+    if (!user) {
       user = await users.create({
-        first_name: names.first_name,
-        last_name: names.last_name,
-        email,
+        first_name: profile.given_name || profile.name?.split(" ")[0] || "User",
+        last_name:
+          profile.family_name ||
+          profile.name?.split(" ").slice(1).join(" ") ||
+          "",
+        email: profile.email,
         googleId: profile.sub,
         authProvider: "google",
-        avatar: profile.picture || "",
+        profilePicture: profile.picture || "",
       });
+    } else if (!user.googleId) {
+      user.googleId = profile.sub;
+      await user.save();
     }
 
     const token = generateToken(user._id);
-
-    return res.status(200).json({
-      message: "Login successful",
-      token,
-      user: sanitizeUser(user),
-    });
-  } catch (error) {
-    console.error("Error logging in with Google:", error);
-    return res
-      .status(400)
-      .json({ message: error.message || "Google login failed" });
+    res.json({ token, user: sanitizeUser(user), message: "Signed in with Google" });
+  } catch (err) {
+    res
+      .status(401)
+      .json({ message: err.message || "Google authentication failed" });
   }
 };
 
@@ -223,7 +215,7 @@ export const getUserById = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ user: sanitizeUser(user) });
   } catch (error) {
     console.error("Error fetching user:", error);
     return res.status(400).json({ message: "Server error" });
@@ -244,7 +236,7 @@ export const getCurrentUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ user: sanitizeUser(user) });
   } catch (error) {
     console.error("Error fetching current user:", error);
     return res.status(400).json({ message: "Server error" });
@@ -304,6 +296,7 @@ export const updateUser = async (req, res) => {
       email,
       role,
       profilePicture,
+      avatar: profilePicture, // Explicitly pass it here as well for applyProfileUpdates
       bio,
       language,
       timezone,
@@ -362,7 +355,7 @@ export const getAllUsers = async (req, res) => {
       .find(filter)
       .select("-password")
       .sort({ createdAt: -1 });
-    return res.status(200).json({ users: allUsers });
+    return res.status(200).json({ users: allUsers.map(u => sanitizeUser(u)) });
   } catch (error) {
     console.error("Error fetching all users:", error);
     return res.status(400).json({ message: error.message });
@@ -372,7 +365,7 @@ export const getAllUsers = async (req, res) => {
 export const getAllUsersForAdmin = async (req, res) => {
   try {
     const allUsers = await users.find().select("-password");
-    return res.status(200).json({ users: allUsers });
+    return res.status(200).json({ users: allUsers.map(u => sanitizeUser(u)) });
   } catch (error) {
     console.error("Error fetching all users:", error);
     return res.status(400).json({ message: error.message });

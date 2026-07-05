@@ -260,7 +260,7 @@ export default function ReviewsPage() {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={review.userAvatar}
+                          src={review.userAvatar || review.userProfilePicture}
                           alt={review.userName}
                         />
                         <AvatarFallback>

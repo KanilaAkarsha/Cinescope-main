@@ -1,4 +1,6 @@
+/* eslint-disable react/prop-types */
 import NextTopLoader from "nextjs-toploader";
+import Script from "next/script";
 import "./globals.css";
 import { inter } from "./fonts";
 import { Analytics } from "@vercel/analytics/next";
@@ -16,24 +18,28 @@ import Providers from "./providers";
 
 export default function RootLayout({ children }) {
   return (
-    <>
-      <html lang="en" className="light" suppressHydrationWarning>
-        <head />
-        <body className={`${inter.className} antialiased`}>
-          <Providers>
-            <Analytics />
-            <SpeedInsights />
-            <NextTopLoader color="primary" />
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange>
-              {children}
-            </ThemeProvider>
-          </Providers>
-        </body>
-      </html>
-    </>
+    <html lang="en" className="light" suppressHydrationWarning>
+      <head>
+        <script src="https://accounts.google.com/gsi/client" async defer />
+      </head>
+      <body className={`${inter.className} antialiased`}>
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+        />
+        <Providers>
+          <Analytics />
+          <SpeedInsights />
+          <NextTopLoader color="primary" />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </Providers>
+      </body>
+    </html>
   );
 }

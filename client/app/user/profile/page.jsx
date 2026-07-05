@@ -36,16 +36,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { signIn, useSession } from "@/lib/auth-client";
-import UserNav from "@/components/user-nav";
+import { useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/services/admin.service";
+import API from "@/app/config/api";
+
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "@/app/app/features/authSlice";
+import { uploadImage } from "@/services/upload.service";
 
 export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const avatarInputRef = useRef(null);
+  const reduxUser = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
+
   const { data: session } = useSession();
-  const user = session?.user;
+  const user = reduxUser || session?.user;
   const [profile, setProfile] = useState({
     avatarUrl: "/placeholder.svg?height=128&width=128",
     firstName: "Admin",
@@ -64,7 +71,7 @@ export default function ProfilePage() {
     useState(false);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
-  const handleAvatarUpload = (event) => {
+  const handleAvatarUpload = async (event) => {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -76,15 +83,27 @@ export default function ProfilePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((current) => ({
-        ...current,
-        avatarUrl:
-          typeof reader.result === "string" ? reader.result : current.avatarUrl,
-      }));
-    };
-    reader.readAsDataURL(file);
+    // Immediate local preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    setProfile((current) => ({ ...current, avatarUrl: localPreviewUrl }));
+
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const result = await uploadImage(file);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      setProfile((current) => ({ ...current, avatarUrl: result.url }));
+      toast.success("Image uploaded!", { id: toastId });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image.",
+        { id: toastId },
+      );
+    }
 
     event.target.value = "";
   };
@@ -105,7 +124,7 @@ export default function ProfilePage() {
 
     setProfile((current) => ({
       ...current,
-      avatarUrl: user.profilePicture || current.avatarUrl,
+      avatarUrl: user.profilePicture || user.avatar || current.avatarUrl,
       firstName,
       lastName,
       email: user.email || current.email,
@@ -150,28 +169,20 @@ export default function ProfilePage() {
 
     setIsVerifyingPassword(true);
 
-    // Use callbacks to reliably capture success/failure from the auth client
     try {
-      await signIn.email(
-        { email: user.email, password: password.currentPassword },
-        {
-          onSuccess: () => {
-            setIsCurrentPasswordVerified(true);
-            toast.success("Current password verified. You can now change it.");
-          },
-          onError: (context) => {
-            setIsCurrentPasswordVerified(false);
-            toast.error(
-              context?.error?.message || "Current password is invalid",
-            );
-          },
-        },
-      );
-    } catch (e) {
-      // Some implementations may still throw — handle defensively
+      await API.post("/api/users/login", {
+        email: user.email,
+        password: password.currentPassword,
+      });
+      setIsCurrentPasswordVerified(true);
+      toast.success("Current password verified. You can now change it.");
+    } catch (error) {
       setIsCurrentPasswordVerified(false);
       toast.error(
-        e instanceof Error ? e.message : "Current password is invalid",
+        error?.response?.data?.message ||
+          (error instanceof Error
+            ? error.message
+            : "Current password is invalid"),
       );
     } finally {
       setIsVerifyingPassword(false);
@@ -202,12 +213,14 @@ export default function ProfilePage() {
 
     try {
       const result = await updateProfile({
-        id: user._id,
+        id: user._id || user.id,
         first_name: profile.firstName,
         last_name: profile.lastName,
         email: profile.email,
         bio: profile.bio,
         profilePicture: profile.avatarUrl,
+        language: profile.language,
+        timezone: profile.timezone,
       });
 
       if (!result?.success) {
@@ -216,7 +229,27 @@ export default function ProfilePage() {
 
       // Merge returned updates into local profile state so UI reflects saved values
       if (result?.data) {
-        setProfile((current) => ({ ...current, ...result.data }));
+        setProfile((current) => ({
+          ...current,
+          avatarUrl:
+            result.data.profilePicture ||
+            result.data.avatar ||
+            current.avatarUrl,
+          firstName: result.data.first_name || current.firstName,
+          lastName: result.data.last_name || current.lastName,
+          email: result.data.email || current.email,
+          bio: result.data.bio ?? current.bio,
+          language: result.data.language || current.language,
+          timezone: result.data.timezone || current.timezone,
+          updatedAt: result.data.updatedAt || current.updatedAt,
+        }));
+
+        dispatch(
+          login({
+            token: localStorage.getItem("token"),
+            user: result.data,
+          }),
+        );
       }
 
       setIsSubmitting(false);
@@ -239,7 +272,8 @@ export default function ProfilePage() {
   };
 
   const handleChangePassword = async () => {
-    if (!user?._id) {
+    const userId = user?._id || user?.id;
+    if (!userId) {
       toast.error("No active session found.");
       return;
     }
@@ -262,7 +296,7 @@ export default function ProfilePage() {
 
     try {
       const result = await updateProfile({
-        id: user._id,
+        id: userId,
         current_password: password.currentPassword,
         new_password: password.newPassword,
         confirm_password: password.confirmPassword,
@@ -328,13 +362,15 @@ export default function ProfilePage() {
                     src={
                       profile.avatarUrl ||
                       user?.profilePicture ||
+                      user?.avatar ||
                       "/placeholder.svg?height=128&width=128"
                     }
+                    key={profile.avatarUrl || user?.profilePicture || user?.avatar}
                     alt={`${profile.firstName} ${profile.lastName}`}
                   />
                   <AvatarFallback className="text-4xl">
-                    {profile.firstName[0]}
-                    {profile.lastName[0]}
+                    {profile.firstName?.[0] || user?.first_name?.[0] || user?.name?.[0] || "U"}
+                    {profile.lastName?.[0] || user?.last_name?.[0] || ""}
                   </AvatarFallback>
                 </Avatar>
                 <Button

@@ -52,32 +52,135 @@ export const updateProfile = async (profileData) => {
     };
   }
 };
-export const getDashboardData = async () => {
+export const getDashboardData = async (token) => {
   try {
-    const [statsResponse, usersResponse, moviesResponse] = await Promise.all([
-      API.get("/api/users/admin/stats"),
-      API.get("/api/users/admin/users"),
-      API.get("/api/movies/admin/movies"),
+    const authConfig = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined;
+
+    const [usersResponse, moviesResponse, reviewsResponse] = await Promise.all([
+      API.get("/api/users/admin/users", authConfig),
+      API.get("/api/movies/admin/movies", authConfig),
+      API.get("/api/movies/reviews/all", authConfig),
     ]);
 
-    const stats = statsResponse.data.stats;
-    const users = usersResponse.data.users;
-    const movies = moviesResponse.data.movies;
+    const users = usersResponse.data.users || [];
+    const movies = moviesResponse.data.movies || [];
+    const reviews = reviewsResponse.data.reviews || [];
+
+    const normalizeDate = (value) => {
+      const parsedDate = value ? new Date(value) : null;
+      return parsedDate && !Number.isNaN(parsedDate.getTime())
+        ? parsedDate.toISOString()
+        : null;
+    };
+
+    const normalizedUsers = users.map((user) => ({
+      id: user._id?.toString() || user.id,
+      name:
+        `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+        user.email ||
+        "Unknown User",
+      email: user.email || "",
+      role: user.role || "user",
+      avatar: user.profilePicture || user.avatar || "",
+      createdAt: normalizeDate(user.createdAt),
+    }));
+
+    const normalizedMovies = movies.map((movie) => ({
+      id: movie._id?.toString() || movie.id,
+      title: movie.title,
+      year: movie.releaseYear || movie.year,
+      genres: movie.genre || movie.genres || [],
+      poster: movie.poster,
+      rating: movie.rating || movie.imdb?.rating || 0,
+      status: movie.status || "published",
+      createdAt: normalizeDate(movie.createdAt),
+    }));
+
+    const normalizedReviews = reviews.map((review) => ({
+      id: review._id?.toString() || review.id,
+      movieId: review.movieId?.toString() || review.movieId,
+      movieTitle: review.movieTitle || "Unknown Movie",
+      rating: review.rating,
+      comment: review.comment,
+      status: review.status || "approved",
+      userName:
+        `${review.userId?.first_name || ""} ${review.userId?.last_name || ""}`.trim() ||
+        review.userId?.email ||
+        "Anonymous",
+      userAvatar: review.userId?.profilePicture || review.userId?.avatar || "",
+      createdAt: normalizeDate(review.createdAt),
+    }));
+
+    const pendingReviews = normalizedReviews.filter(
+      (review) => review.status === "pending",
+    ).length;
+    const approvedReviews = normalizedReviews.filter(
+      (review) => review.status === "approved",
+    ).length;
+
+    const recentMovies = [...normalizedMovies]
+      .sort(
+        (left, right) => new Date(right.createdAt) - new Date(left.createdAt),
+      )
+      .slice(0, 5);
+
+    const recentUsers = [...normalizedUsers]
+      .sort(
+        (left, right) => new Date(right.createdAt) - new Date(left.createdAt),
+      )
+      .slice(0, 5);
+
+    const recentReviews = [...normalizedReviews]
+      .sort(
+        (left, right) => new Date(right.createdAt) - new Date(left.createdAt),
+      )
+      .slice(0, 5);
+
+    const recentActivity = [
+      ...recentMovies.map((movie) => ({
+        type: "movie",
+        description: "New movie added",
+        title: movie.title,
+        date: movie.createdAt,
+      })),
+      ...recentUsers.map((user) => ({
+        type: "user",
+        description: "New user registered",
+        title: user.name,
+        date: user.createdAt,
+      })),
+      ...recentReviews.map((review) => ({
+        type: "review",
+        description: "New review submitted",
+        title: review.movieTitle,
+        date: review.createdAt,
+      })),
+    ]
+      .filter((item) => item.date)
+      .sort((left, right) => new Date(right.date) - new Date(left.date))
+      .slice(0, 10);
 
     return {
       success: true,
       data: {
-        totalUsers: stats.totalUsers,
-        totalMovies: stats.totalMovies,
-        totalReviews: stats.totalReviews,
-        movies: movies || [],
-        users: users || [],
-        reviews: [], // Reviews endpoint might be separate
-        pendingReviews: 0,
-        approvedReviews: stats.totalReviews,
-        totalViews: 0,
-        viewsDelta: 0,
-        recentActivity: [],
+        totalUsers: normalizedUsers.length,
+        totalMovies: normalizedMovies.length,
+        totalReviews: normalizedReviews.length,
+        pendingReviews,
+        approvedReviews,
+        movies: normalizedMovies,
+        users: normalizedUsers,
+        reviews: normalizedReviews,
+        recentMovies,
+        recentUsers,
+        recentReviews,
+        recentActivity,
       },
     };
   } catch (error) {
@@ -100,9 +203,12 @@ export const getDashboardStats = async () => {
   }
 };
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (query = "") => {
   try {
-    const { data } = await API.get("/api/users/admin/users");
+    const endpoint = query
+      ? `/api/users/search?query=${encodeURIComponent(query)}`
+      : "/api/users/admin/users";
+    const { data } = await API.get(endpoint);
     return { success: true, data: data.users };
   } catch (error) {
     return {

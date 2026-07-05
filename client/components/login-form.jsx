@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,7 +18,7 @@ import API from "@/app/config/api";
 import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { login } from "@/app/app/features/authSlice";
-import { signIn } from "@/lib/auth-client";
+import GoogleAuthButton from "@/components/google-auth-button";
 
 const DEFAULT_ERROR = {
   error: false,
@@ -33,7 +32,6 @@ export default function LoginForm() {
   const dispatch = useDispatch();
   const [error, setError] = useState(DEFAULT_ERROR);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const validateForm = (email, password) => {
     if (email === "") {
@@ -78,32 +76,15 @@ export default function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.google.accounts.id.initialize({
-      client_id:
-        "62555845260-j9oggg4marqs7h75nelakge0np69s1gp.apps.googleusercontent.com",
-      callback: async (response) => {
-        const res = await API.post("/api/users/google-login", {
-          credential: response.credential,
-        });
-        dispatch(login(res.data));
-        router.push("/");
-      },
-    });
-    window.google.accounts.id.prompt();
-  };
-
   return (
     // Outer wrapper: centers the card vertically and horizontally on all screen sizes,
     // adds horizontal padding on mobile so the card doesn't touch screen edges
     <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       {/* Card is full-width on mobile, capped at sm on larger screens */}
       <div className="w-full max-w-sm">
-        <Card className="shadow-md">
-          <CardHeader className="space-y-1 text-center sm:text-left">
-            <CardTitle className="text-2xl font-bold">
-              Login to Your Account
-            </CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Login to Your Account</CardTitle>
             <CardDescription>
               Enter your email below to login to your account
             </CardDescription>
@@ -167,18 +148,7 @@ export default function LoginForm() {
                     )}
                     Login
                   </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 sm:h-10"
-                    disabled={isLoading || isGoogleLoading}
-                    onClick={handleGoogleLogin}>
-                    {isGoogleLoading && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Login with Google
-                  </Button>
+                  <GoogleAuthButton action="login" />
                 </div>
 
                 {/* Sign-up link */}

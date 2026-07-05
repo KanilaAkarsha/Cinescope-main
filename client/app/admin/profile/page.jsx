@@ -36,8 +36,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { signIn, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/services/admin.service";
+import API from "@/app/config/api";
 
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/app/app/features/authSlice";
@@ -83,6 +84,10 @@ export default function ProfilePage() {
       return;
     }
 
+    // Immediate local preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    setProfile((current) => ({ ...current, avatarUrl: localPreviewUrl }));
+
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -92,7 +97,7 @@ export default function ProfilePage() {
         throw new Error(result.message);
       }
 
-      // ✅ store Cloudinary URL instead of base64
+      // ✅ store Cloudinary URL
       setProfile((current) => ({ ...current, avatarUrl: result.url }));
       toast.success("Image uploaded!", { id: toastId });
     } catch (error) {
@@ -121,7 +126,7 @@ export default function ProfilePage() {
       user.last_name || user.name?.split(" ").slice(1).join(" ") || "";
 
     setProfile({
-      avatarUrl: user.profilePicture || user.image || "",
+      avatarUrl: user.profilePicture || user.avatar || user.image || "",
       firstName,
       lastName,
       email: user.email || "",
@@ -166,28 +171,20 @@ export default function ProfilePage() {
 
     setIsVerifyingPassword(true);
 
-    // Use callbacks to reliably capture success/failure from the auth client
     try {
-      await signIn.email(
-        { email: user.email, password: password.currentPassword },
-        {
-          onSuccess: () => {
-            setIsCurrentPasswordVerified(true);
-            toast.success("Current password verified. You can now change it.");
-          },
-          onError: (context) => {
-            setIsCurrentPasswordVerified(false);
-            toast.error(
-              context?.error?.message || "Current password is invalid",
-            );
-          },
-        },
-      );
-    } catch (e) {
-      // Some implementations may still throw — handle defensively
+      await API.post("/api/users/login", {
+        email: user.email,
+        password: password.currentPassword,
+      });
+      setIsCurrentPasswordVerified(true);
+      toast.success("Current password verified. You can now change it.");
+    } catch (error) {
       setIsCurrentPasswordVerified(false);
       toast.error(
-        e instanceof Error ? e.message : "Current password is invalid",
+        error?.response?.data?.message ||
+          (error instanceof Error
+            ? error.message
+            : "Current password is invalid"),
       );
     } finally {
       setIsVerifyingPassword(false);
@@ -237,7 +234,10 @@ export default function ProfilePage() {
       if (result?.data) {
         setProfile((current) => ({
           ...current,
-          avatarUrl: result.data.profilePicture || current.avatarUrl,
+          avatarUrl:
+            result.data.profilePicture ||
+            result.data.avatar ||
+            current.avatarUrl,
           firstName: result.data.first_name || current.firstName,
           lastName: result.data.last_name || current.lastName,
           email: result.data.email || current.email,
@@ -360,12 +360,18 @@ export default function ProfilePage() {
                     }
                   }}>
                   <AvatarImage
-                    src={profile.avatarUrl || ""}
+                    src={
+                      profile.avatarUrl ||
+                      user?.profilePicture ||
+                      user?.avatar ||
+                      ""
+                    }
+                    key={profile.avatarUrl || user?.profilePicture || user?.avatar}
                     alt={`${profile.firstName} ${profile.lastName}`}
                   />
                   <AvatarFallback className="text-4xl">
-                    {profile.firstName?.[0] || user?.name?.[0] || "U"}
-                    {profile.lastName?.[0] || ""}
+                    {profile.firstName?.[0] || user?.first_name?.[0] || user?.name?.[0] || "U"}
+                    {profile.lastName?.[0] || user?.last_name?.[0] || ""}
                   </AvatarFallback>
                 </Avatar>
                 <Button

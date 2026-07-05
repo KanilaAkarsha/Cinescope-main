@@ -11,7 +11,10 @@ const protect = (req, res, next) => {
     // If token is "Bearer xxx"
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "default_secret",
+    );
 
     req.userId = decoded.userId; // MUST match generateToken
     next();

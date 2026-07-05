@@ -8,7 +8,6 @@ export default async function MoviesData({ query = "" }) {
 
   try {
     const { data: moviesData = [] } = await searchMovies(query);
-    // console.log( "Movies" , moviesData);
 
     if (!moviesData.length) throw new Error("No movies found");
 
@@ -24,8 +23,11 @@ export default async function MoviesData({ query = "" }) {
       imdb: movie.imdb || { rating: movie.rating },
       runtime: movie.runtime,
       status: movie.status ?? "published",
-      directors: movie.director || movie.directors,
+      director: movie.director || movie.directors || "",
+      directors: movie.director || movie.directors || "",
       cast: movie.cast,
+      trailer: movie.trailer || movie.trailerVideoLink || "",
+      language: movie.language || "",
       releaseDate: movie.releaseDate ?? movie.releaseYear ?? movie.year,
     }));
 

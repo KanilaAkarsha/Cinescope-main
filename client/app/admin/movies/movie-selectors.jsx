@@ -35,6 +35,8 @@ export default function MovieSelectors() {
     searchParams.get("sort"),
   ].filter(Boolean).length;
 
+  const currentStatus = searchParams.get("status") || "all";
+
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -49,9 +51,17 @@ export default function MovieSelectors() {
     if (searchTerm !== debouncedSearchTerm) {
       replace(`${pathname}?${newSearchParams.toString()}`);
     }
-  }, [pathname, debouncedSearchTerm, replace]);
+  }, [pathname, debouncedSearchTerm, replace, searchParams, searchTerm]);
 
-  // const handleMovieSearch = (term) => setImmediateSearchTerm(term);
+  const handleStatusChange = (value) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", value);
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div>
@@ -60,13 +70,14 @@ export default function MovieSelectors() {
           <SearchIcon className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search movies..."
+            value={immediateSearchTerm}
             onChange={(e) => setImmediateSearchTerm(e.target.value)}
             className="h-9"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Select>
+          <Select value={currentStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px] h-9">
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>

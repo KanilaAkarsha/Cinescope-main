@@ -10,36 +10,17 @@ import {
   Film,
   Users,
   MessageSquare,
-  Eye,
   TrendingUp,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import MoviesData from "./movies-data";
 import { getDashboardData } from "@/services/admin.service";
-import TotalMovies from "./total-movies";
-import TotalUsers from "./total-users";
+import RecentMovies from "./recent-movies";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
-
-const formatViews = (value) => {
-  const views = Number(value || 0);
-
-  if (views >= 1000000) {
-    return `${(views / 1000000).toFixed(1)}M`;
-  }
-
-  if (views >= 1000) {
-    return `${(views / 1000).toFixed(1)}K`;
-  }
-
-  return `${views}`;
-};
-
-const normalizeStatus = (status) => String(status || "").toLowerCase();
 
 const getUserRoleClass = (role) => {
   if (role === "admin") {
@@ -65,19 +46,29 @@ const getReviewStatusClass = (status) => {
   return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
 };
 
+const getActivityIcon = (type) => {
+  if (type === "movie") {
+    return <Film className="text-primary h-5 w-5" />;
+  }
+
+  if (type === "user") {
+    return <Users className="text-primary h-5 w-5" />;
+  }
+
+  return <MessageSquare className="text-primary h-5 w-5" />;
+};
+
 export default async function AdminDashboard() {
-  const dashboardResult = await getDashboardData();
+  const token = cookies().get("token")?.value;
+  const dashboardResult = await getDashboardData(token);
   const dashboard = dashboardResult?.success ? dashboardResult.data : {};
-  const movies = dashboard.movies || [];
+  const recentMovies = dashboard.recentMovies || [];
   const users = dashboard.users || [];
-  const reviews = dashboard.reviews || [];
   const pendingReviews = dashboard.pendingReviews || 0;
   const approvedReviews = dashboard.approvedReviews || 0;
-  const totalViews = dashboard.totalViews || 0;
-  const viewsDelta = dashboard.viewsDelta || 0;
+  const totalReviews = dashboard.totalReviews || 0;
   const recentActivity = dashboard.recentActivity || [];
 
-  // Build recent activity from real data sources: movies, users, reviews
   const timeAgo = (date) => {
     if (!date) return "Unknown";
     const parsedDate = date instanceof Date ? date : new Date(date);
@@ -91,13 +82,14 @@ export default async function AdminDashboard() {
     if (d > 0) return `${d} day${d > 1 ? "s" : ""} ago`;
     if (h > 0) return `${h} hour${h > 1 ? "s" : ""} ago`;
     if (m > 0) return `${m} minute${m > 1 ? "s" : ""} ago`;
-    return `${s} second${s !== 1 ? "s" : ""} ago`;
+    if (s === 1) return "1 second ago";
+    return `${s} seconds ago`;
   };
 
-  if (!movies) {
+  if (!dashboardResult?.success) {
     return (
       <div className=" text-foreground font-medium text-center py-12">
-        No movies available.
+        {dashboardResult?.message || "No dashboard data available."}
       </div>
     );
   }
@@ -118,7 +110,10 @@ export default async function AdminDashboard() {
             <Film className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <TotalMovies />
+            <div className="text-2xl font-bold">{dashboard.totalMovies || 0}</div>
+            <p className="text-muted-foreground text-xs">
+              {dashboard.movies?.filter(m => m.status === "Published").length || 0} published
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -127,7 +122,10 @@ export default async function AdminDashboard() {
             <Users className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <TotalUsers />
+            <div className="text-2xl font-bold">{dashboard.totalUsers || 0}</div>
+            <p className="text-muted-foreground text-xs">
+              Platform users in database
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -146,13 +144,13 @@ export default async function AdminDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <Eye className="text-primary h-4 w-4" />
+            <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
+            <MessageSquare className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatViews(totalViews)}</div>
+            <div className="text-2xl font-bold">{totalReviews}</div>
             <p className="text-muted-foreground text-xs">
-              {`${viewsDelta >= 0 ? "+" : ""}${viewsDelta.toFixed(1)}% from last month`}
+              Real review records from the database
             </p>
           </CardContent>
         </Card>
@@ -251,13 +249,7 @@ export default async function AdminDashboard() {
                     key={`${item.type}-${idx}`}
                     className="flex items-center gap-4">
                     <div className="bg-primary/10 rounded-full p-2">
-                      {item.type === "movie" ? (
-                        <Film className="text-primary h-5 w-5" />
-                      ) : item.type === "user" ? (
-                        <Users className="text-primary h-5 w-5" />
-                      ) : (
-                        <MessageSquare className="text-primary h-5 w-5" />
-                      )}
+                      {getActivityIcon(item.type)}
                     </div>
                     <div>
                       <p className="text-sm font-medium">
@@ -278,7 +270,7 @@ export default async function AdminDashboard() {
 
       <Tabs defaultValue="recent-movies" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="recent-movies " className="text-xs sm:text-sm">
+          <TabsTrigger value="recent-movies" className="text-xs sm:text-sm">
             Recent Movies
           </TabsTrigger>
           <TabsTrigger value="recent-users" className="text-xs sm:text-sm">
@@ -289,7 +281,7 @@ export default async function AdminDashboard() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="recent-movies" className="space-y-4">
-          <MoviesData />
+          <RecentMovies movies={recentMovies} />
         </TabsContent>
         <TabsContent value="recent-users" className="space-y-4">
           <div className="rounded-md border">
@@ -300,14 +292,16 @@ export default async function AdminDashboard() {
               </p>
             </div>
             <div className="divide-y">
-              {users.slice(0, 5).map((user) => (
+              {dashboard.recentUsers?.slice(0, 5).map((user) => (
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={user.avatar || user.profilePicture} alt={user.name} />
+                      <AvatarFallback>
+                        {user.name?.charAt(0) || "U"}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">{user.name}</p>
@@ -343,18 +337,18 @@ export default async function AdminDashboard() {
               </p>
             </div>
             <div className="divide-y">
-              {reviews.slice(0, 5).map((review) => {
+              {dashboard.recentReviews?.slice(0, 5).map((review) => {
                 return (
                   <div key={review.id} className="p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
-                            src={review.userAvatar}
+                            src={review.userAvatar || review.userProfilePicture}
                             alt={review.userName}
                           />
                           <AvatarFallback>
-                            {review.userName.charAt(0)}
+                            {review.userName?.charAt(0) || "A"}
                           </AvatarFallback>
                         </Avatar>
                         <span className="text-sm font-medium">

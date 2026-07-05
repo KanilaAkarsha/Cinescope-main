@@ -131,7 +131,7 @@ export default function AddMovieForm({ showDialog }) {
 
       if (response?.success) {
         toast.success("Movie added successfully");
-        router.refresh();
+        window.location.reload();
         setIsSubmitting(false);
         showDialog(false);
       } else {

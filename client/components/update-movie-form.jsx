@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,48 @@ const buildMultiValueFields = ({ castInput, genreInput }) => {
   return {
     cast: parsedCast,
     genres: parsedGenres,
+  };
+};
+
+const resolveMovieField = (movie, keys, fallback = "") => {
+  for (const key of keys) {
+    const value = movie?.[key];
+
+    if (value !== undefined && value !== null && value !== "") {
+      return value;
+    }
+  }
+
+  return fallback;
+};
+
+const normalizeMovieData = (movie) => {
+  const year = resolveMovieField(movie, ["releaseYear", "year"]);
+  const genres = resolveMovieField(movie, ["genres", "genre"], []);
+  const cast = resolveMovieField(movie, ["cast"], []);
+  const language = resolveMovieField(movie, ["language"]);
+
+  return {
+    title: resolveMovieField(movie, ["title"]),
+    year: year ? String(year) : "",
+    director: Array.isArray(movie?.director)
+      ? movie.director[0] || ""
+      : resolveMovieField(movie, ["director", "directors"]),
+    rating: movie?.rating ?? movie?.imdb?.rating ?? "",
+    runtime: resolveMovieField(movie, ["runtime"], ""),
+    overview: resolveMovieField(movie, ["description", "plot"]),
+    poster: resolveMovieField(movie, ["poster"]),
+    backdrop: resolveMovieField(movie, ["backdrop"]),
+    movieFileLink: resolveMovieField(movie, ["downloadLink", "movieFileLink"]),
+    trailer: resolveMovieField(movie, ["trailer", "trailerVideoLink"]),
+    language,
+    status: resolveMovieField(movie, ["status"]),
+    castTags: Array.isArray(cast)
+      ? cast
+      : parseCommaSeparated(String(cast || "")),
+    genreTags: Array.isArray(genres)
+      ? genres
+      : parseCommaSeparated(String(genres || "")),
   };
 };
 
@@ -106,37 +149,54 @@ function TagInput({ tags, setTags, placeholder, className }) {
 export default function UpdateMovieForm({ showDialog, movie }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const normalizedMovie = normalizeMovieData(movie);
   const [formState, setFormState] = useState({
-    title: movie?.title || "",
-    year: movie?.releaseYear ? String(movie.releaseYear) : "",
-    director: Array.isArray(movie?.director)
-      ? movie.director[0]
-      : movie?.director || "",
-    rating: movie?.rating || "",
-    runtime: movie?.runtime || "",
-    overview: movie?.description || movie?.plot || "",
-    poster: movie?.poster || "",
-    backdrop: movie?.backdrop || "",
-    movieFileLink: movie?.downloadLink || "",
-    trailer: movie?.trailer || movie?.trailerVideoLink || "",
-    language: movie?.language || "",
-    status: movie?.status || "",
+    title: normalizedMovie.title,
+    year: normalizedMovie.year,
+    director: normalizedMovie.director,
+    rating: normalizedMovie.rating,
+    runtime: normalizedMovie.runtime,
+    overview: normalizedMovie.overview,
+    poster: normalizedMovie.poster,
+    backdrop: normalizedMovie.backdrop,
+    movieFileLink: normalizedMovie.movieFileLink,
+    trailer: normalizedMovie.trailer,
+    language: normalizedMovie.language,
+    status: normalizedMovie.status,
   });
 
-  const [castTags, setCastTags] = useState(
-    Array.isArray(movie?.cast)
-      ? movie.cast
-      : parseCommaSeparated(movie?.cast || movie?.cast?.toString?.() || ""),
-  );
-  const [genreTags, setGenreTags] = useState(
-    Array.isArray(movie?.genres)
-      ? movie.genres
-      : parseCommaSeparated(movie?.genres || movie?.genre || ""),
-  );
+  const [castTags, setCastTags] = useState(normalizedMovie.castTags);
+  const [genreTags, setGenreTags] = useState(normalizedMovie.genreTags);
   const years = getAllYears();
   const statuses = getAllMovieStatus();
   const allGenres = getAllGenres();
-  const languages = getAllLanguages();
+  const languages = [
+    ...(normalizedMovie.language ? [normalizedMovie.language] : []),
+    ...getAllLanguages().filter(
+      (language) => language !== normalizedMovie.language,
+    ),
+  ];
+
+  useEffect(() => {
+    const nextMovie = normalizeMovieData(movie);
+
+    setFormState({
+      title: nextMovie.title,
+      year: nextMovie.year,
+      director: nextMovie.director,
+      rating: nextMovie.rating,
+      runtime: nextMovie.runtime,
+      overview: nextMovie.overview,
+      poster: nextMovie.poster,
+      backdrop: nextMovie.backdrop,
+      movieFileLink: nextMovie.movieFileLink,
+      trailer: nextMovie.trailer,
+      language: nextMovie.language,
+      status: nextMovie.status,
+    });
+    setCastTags(nextMovie.castTags);
+    setGenreTags(nextMovie.genreTags);
+  }, [movie]);
 
   const toggleGenre = (genre) => {
     setGenreTags((prev) =>
@@ -189,9 +249,6 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
     setIsSubmitting(true);
 
-    console.log("Movie ID:", movie?._id || movie?.id);
-    console.log("Movie Data:", movieDoc);
-
     try {
       const response = await updateMovie(
         movie?._id || movie?.id,
@@ -200,7 +257,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
       );
 
       if (response?.success) {
-        router.refresh();
+        window.location.reload();
 
         showDialog(false);
       }
@@ -208,6 +265,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
       console.error("Update failed:", error);
     } finally {
       setIsSubmitting(false);
+      
     }
   };
 

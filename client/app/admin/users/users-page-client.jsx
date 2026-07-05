@@ -202,7 +202,7 @@ export default function UsersPageClient({ initialUsers }) {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.image} alt={user.name} />
+                        <AvatarImage src={user.image || user.profilePicture || user.avatar} alt={user.name} />
                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <span>{user.name}</span>

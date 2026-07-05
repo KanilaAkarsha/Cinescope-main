@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,19 +18,12 @@ import { toast } from "react-hot-toast";
 import API from "@/app/config/api";
 import { useDispatch } from "react-redux";
 import { login } from "@/app/app/features/authSlice";
-import { signIn } from "@/lib/auth-client";
-
-const DEFAULT_ERROR = {
-  error: false,
-  message: "",
-};
+import GoogleAuthButton from "@/components/google-auth-button";
 
 export default function SignupForm() {
   const navigate = useRouter();
   const dispatch = useDispatch();
-  const [error, setError] = useState(DEFAULT_ERROR);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -63,35 +55,6 @@ export default function SignupForm() {
       toast.error(error?.response?.data?.message || error.message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError(DEFAULT_ERROR);
-    setIsGoogleLoading(true);
-
-    try {
-      await signIn.social(
-        {
-          provider: "google",
-          callbackURL: "/",
-        },
-        {
-          onError: (ctx) => {
-            setError({
-              error: true,
-              message: ctx.error.message || "Google login failed",
-            });
-            setIsGoogleLoading(false);
-          },
-        },
-      );
-    } catch {
-      setError({
-        error: true,
-        message: "Google login failed. Please try again later.",
-      });
-      setIsGoogleLoading(false);
     }
   };
 
@@ -168,26 +131,11 @@ export default function SignupForm() {
                   required
                 />
               </div>
-              <div className="flex justify-center ">
-                {error.error && (
-                  <span className="text-red-600 text-sm text-center animate-pulse duration-700">
-                    {error.message}
-                  </span>
-                )}
-              </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="animate-spin" />} Sign Up
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading || isGoogleLoading}
-                  onClick={handleGoogleLogin}>
-                  {isGoogleLoading && <Loader2 className="animate-spin" />}
-                  Sign Up with Google
-                </Button>
+                <GoogleAuthButton action="signup" />
               </div>
             </div>
             <div className="mt-4 text-center text-sm">

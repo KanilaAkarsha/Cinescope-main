@@ -60,9 +60,20 @@ export const deleteMovie = async (id) => {
   }
 };
 
-export const getAllMoviesForAdmin = async () => {
+export const getAllMoviesForAdmin = async (params = {}) => {
   try {
-    const { data } = await API.get("/api/movies/admin/movies");
+    let url = "/api/movies/admin/movies";
+    if (typeof params === "string") {
+      url += params ? `?query=${params}` : "";
+    } else {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) queryParams.set(key, value);
+      });
+      const queryString = queryParams.toString();
+      if (queryString) url += `?${queryString}`;
+    }
+    const { data } = await API.get(url);
     return { success: true, data: data.movies };
   } catch (error) {
     return {

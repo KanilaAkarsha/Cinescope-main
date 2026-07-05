@@ -1,7 +1,27 @@
 import Movie from "../models/movies.js";
+import users from "../models/users.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const { ObjectId } = mongoose.Types;
+
+const checkIsAdmin = async (req) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return false;
+
+    const token = authHeader.split(" ")[1];
+    if (!token) return false;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret");
+    if (!decoded.userId) return false;
+
+    const user = await users.findById(decoded.userId).select("role");
+    return user?.role === "admin";
+  } catch (error) {
+    return false;
+  }
+};
 
 export const createMovie = async (req, res) => {
   try {
@@ -57,7 +77,6 @@ export const createMovie = async (req, res) => {
       !finalCast ||
       !finalPlot ||
       !finalPoster ||
-      !finalRating ||
       !finalTrailer ||
       !finalLanguage ||
       !finalStatus ||
@@ -179,20 +198,54 @@ export const deleteMovie = async (req, res) => {
 
 export const getAllMoviesForAdmin = async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, genre, year, status, sort } = req.query;
     let filter = {};
 
     if (query) {
-      filter = {
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { director: { $regex: query, $options: "i" } },
-        ],
-      };
+      filter.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { director: { $regex: query, $options: "i" } },
+      ];
     }
 
-    const movies = await Movie.find(filter).sort({ createdAt: -1 });
+    if (genre && genre !== "all") {
+      filter.genre = { $regex: genre, $options: "i" };
+    }
+
+    if (year && year !== "all") {
+      filter.year = year;
+    }
+
+    if (status && status !== "all") {
+      filter.status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    }
+
+    let sortOption = { createdAt: -1 };
+    if (sort) {
+      switch (sort) {
+        case "newest":
+          sortOption = { createdAt: -1 };
+          break;
+        case "oldest":
+          sortOption = { createdAt: 1 };
+          break;
+        case "title_asc":
+          sortOption = { title: 1 };
+          break;
+        case "title_desc":
+          sortOption = { title: -1 };
+          break;
+        case "rating_desc":
+          sortOption = { rating: -1 };
+          break;
+        case "rating_asc":
+          sortOption = { rating: 1 };
+          break;
+      }
+    }
+
+    const movies = await Movie.find(filter).sort(sortOption);
     return res.status(200).json({ movies });
   } catch (error) {
     console.error("Error fetching movies for admin:", error);
@@ -202,20 +255,65 @@ export const getAllMoviesForAdmin = async (req, res) => {
 
 export const getAllMoviesForUser = async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, genre, year, status, sort } = req.query;
     let filter = {};
 
     if (query) {
-      filter = {
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { director: { $regex: query, $options: "i" } },
-        ],
-      };
+      filter.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { director: { $regex: query, $options: "i" } },
+      ];
     }
 
-    const movies = await Movie.find(filter).sort({ createdAt: -1 }); // Fetch all movies for user, sorted by date
+    if (genre && genre !== "all") {
+      filter.genre = { $regex: genre, $options: "i" };
+    }
+
+    if (year && year !== "all") {
+      filter.year = year;
+    }
+
+    // Check if the requester is an admin
+    const isAdmin = await checkIsAdmin(req);
+
+    if (status && status !== "all") {
+      const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      if (!isAdmin && formattedStatus === "Draft") {
+        filter.status = { $ne: "Draft" };
+      } else {
+        filter.status = formattedStatus;
+      }
+    } else if (!isAdmin) {
+      filter.status = { $ne: "Draft" };
+    }
+
+    let sortOption = { createdAt: -1 };
+    if (sort) {
+      switch (sort) {
+        case "newest":
+          sortOption = { createdAt: -1 };
+          break;
+        case "oldest":
+          sortOption = { createdAt: 1 };
+          break;
+        case "title_asc":
+          sortOption = { title: 1 };
+          break;
+        case "title_desc":
+          sortOption = { title: -1 };
+          break;
+        case "rating_desc":
+          sortOption = { rating: -1 };
+          break;
+        case "rating_asc":
+          sortOption = { rating: 1 };
+          break;
+      }
+    }
+
+    const movies = await Movie.find(filter).sort(sortOption);
+
     return res.status(200).json({ movies });
   } catch (error) {
     console.error("Error fetching movies for user:", error);
@@ -234,6 +332,12 @@ export const getMovieById = async (req, res) => {
     const movie = await Movie.findById(id);
 
     if (movie) {
+      if (movie.status === "Draft") {
+        const isAdmin = await checkIsAdmin(req);
+        if (!isAdmin) {
+          return res.status(403).json({ message: "Draft movie access restricted" });
+        }
+      }
       return res.status(200).json({ movie });
     } else {
       return res.status(404).json({ message: "Movie not found" });

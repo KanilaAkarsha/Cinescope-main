@@ -14,7 +14,7 @@ export default function MoviesData({ searchParams = {} }) {
       setLoading(true);
       try {
         const { success, data, message } = await getAllMoviesForAdmin(searchParams);
-        if (success) {
+        if (success && Array.isArray(data)) {
           const refinedMovies = data.map((movie) => ({
             id: movie._id.toString(),
             title: movie.title,

@@ -9,7 +9,9 @@ export default async function MoviesData({ query = "" }) {
   try {
     const { data: moviesData = [] } = await searchMovies(query);
 
-    if (!moviesData.length) throw new Error("No movies found");
+    if (!moviesData || !moviesData.length) {
+      return <div>No Movies Available!</div>;
+    }
 
     const refinedMovies = moviesData.map((movie) => ({
       id: movie._id.toString(),

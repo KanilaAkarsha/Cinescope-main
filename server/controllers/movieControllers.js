@@ -214,7 +214,7 @@ export const getAllMoviesForAdmin = async (req, res) => {
     }
 
     if (year && year !== "all") {
-      filter.year = year;
+      filter.releaseYear = year;
     }
 
     if (status && status !== "all") {
@@ -271,7 +271,7 @@ export const getAllMoviesForUser = async (req, res) => {
     }
 
     if (year && year !== "all") {
-      filter.year = year;
+      filter.releaseYear = year;
     }
 
     // Check if the requester is an admin

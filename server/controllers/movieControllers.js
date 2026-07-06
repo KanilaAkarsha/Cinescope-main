@@ -329,16 +329,37 @@ export const getMovieById = async (req, res) => {
       return res.status(400).json({ message: "Invalid movie id" });
     }
 
-    const movie = await Movie.findById(id);
+    const movie = await Movie.findById(id).populate(
+      "reviews.userId",
+      "first_name last_name profilePicture",
+    );
 
     if (movie) {
       if (movie.status === "Draft") {
         const isAdmin = await checkIsAdmin(req);
         if (!isAdmin) {
-          return res.status(403).json({ message: "Draft movie access restricted" });
+          return res
+            .status(403)
+            .json({ message: "Draft movie access restricted" });
         }
       }
-      return res.status(200).json({ movie });
+
+      // ✅ Normalize reviews for movie details
+      const normalizedReviews = movie.reviews.map((review) => ({
+        _id: review._id,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt,
+        userName:
+          `${review.userId?.first_name || ""} ${review.userId?.last_name || ""}`.trim() ||
+          "Anonymous",
+        userAvatar: review.userId?.profilePicture || "",
+      }));
+
+      const movieObj = movie.toObject();
+      movieObj.reviews = normalizedReviews;
+
+      return res.status(200).json({ movie: movieObj });
     } else {
       return res.status(404).json({ message: "Movie not found" });
     }
@@ -397,8 +418,15 @@ export const getReviewsForMovie = async (req, res) => {
 
     if (!movie) return res.status(404).json({ message: "Movie not found" });
 
+    // ✅ Filter for approved reviews unless user is admin
+    const isAdmin = await checkIsAdmin(req);
+    let reviewsList = movie.reviews;
+    if (!isAdmin) {
+      reviewsList = reviewsList.filter((r) => r.status === "approved");
+    }
+
     // ✅ Normalize reviews for frontend
-    const reviews = movie.reviews.map((review) => ({
+    const reviews = reviewsList.map((review) => ({
       _id: review._id,
       rating: review.rating,
       comment: review.comment,
@@ -436,6 +464,16 @@ export const createReviewForMovie = async (req, res) => {
 
     const movie = await Movie.findById(movieId);
     if (!movie) return res.status(404).json({ message: "Movie not found" });
+
+    // Check if user already reviewed
+    const alreadyReviewed = movie.reviews.find(
+      (r) => r.userId.toString() === req.userId.toString(),
+    );
+    if (alreadyReviewed) {
+      return res
+        .status(400)
+        .json({ message: "You have already reviewed this movie" });
+    }
 
     const newReview = {
       userId: req.userId, // ← comes from token via protect middleware

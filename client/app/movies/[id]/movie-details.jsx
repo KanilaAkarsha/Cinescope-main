@@ -83,6 +83,15 @@ const getTrailerEmbedUrl = (url) => {
     const parsed = new URL(value);
     const host = parsed.hostname.replace(/^www\./, "");
 
+    // YouTube Shorts
+    if (host.includes("youtube.com") && parsed.pathname.startsWith("/shorts/")) {
+      const videoId = parsed.pathname.split("/")[2];
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+
+    // YouTube standard
     if (host.includes("youtube.com")) {
       const videoId = parsed.searchParams.get("v");
       if (videoId) {
@@ -90,6 +99,7 @@ const getTrailerEmbedUrl = (url) => {
       }
     }
 
+    // YouTube short link (youtu.be)
     if (host === "youtu.be") {
       const videoId = parsed.pathname.replace("/", "");
       if (videoId) {
@@ -123,7 +133,9 @@ export default function MovieDetails({
   const [selectedDownload, setSelectedDownload] = useState(
     downloadOptions[0]?.value || "",
   );
-  const trailerUrl = getTrailerEmbedUrl(movie?.trailer || movie?.videoLink);
+  const trailerUrl = getTrailerEmbedUrl(
+    movie?.trailer || movie?.trailerVideoLink || movie?.videoLink,
+  );
   const formatReviewDate = (value) =>
     new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
@@ -171,6 +183,7 @@ export default function MovieDetails({
       setReviewText("");
       setRating(0);
       toast.success("Review submitted successfully.");
+      // Force refresh data since we're using server components for the initial load
       router.refresh();
     } catch (error) {
       setIsSubmitting(false);

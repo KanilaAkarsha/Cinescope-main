@@ -218,7 +218,7 @@ export const getAllMoviesForAdmin = async (req, res) => {
     }
 
     if (status && status !== "all") {
-      filter.status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      filter.status = new RegExp(`^${status}$`, "i");
     }
 
     let sortOption = { createdAt: -1 };
@@ -278,14 +278,14 @@ export const getAllMoviesForUser = async (req, res) => {
     const isAdmin = await checkIsAdmin(req);
 
     if (status && status !== "all") {
-      const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-      if (!isAdmin && formattedStatus === "Draft") {
-        filter.status = { $ne: "Draft" };
+      const statusRegex = new RegExp(`^${status}$`, "i");
+      if (!isAdmin && status.toLowerCase() === "draft") {
+        filter.status = { $ne: "Draft" }; // This might still be problematic if Draft is stored differently
       } else {
-        filter.status = formattedStatus;
+        filter.status = statusRegex;
       }
     } else if (!isAdmin) {
-      filter.status = { $ne: "Draft" };
+      filter.status = { $not: /^draft$/i };
     }
 
     let sortOption = { createdAt: -1 };

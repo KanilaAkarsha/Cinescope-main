@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 import { createReview } from "@/services/review.service";
 
 const getDownloadOptions = (movie) => {
@@ -109,6 +110,7 @@ export default function MovieDetails({
   isAuthenticated,
   user,
 }) {
+  const router = useRouter();
   const isLoading = false;
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
@@ -169,6 +171,7 @@ export default function MovieDetails({
       setReviewText("");
       setRating(0);
       toast.success("Review submitted successfully.");
+      router.refresh();
     } catch (error) {
       setIsSubmitting(false);
       toast.error(
@@ -380,7 +383,6 @@ export default function MovieDetails({
                             <AvatarImage
                               src={
                                 review.userAvatar ||
-                                user?.pro ||
                                 "/placeholder.svg?height=40&width=40"
                               }
                               alt={review.userName || "Anonymous"}

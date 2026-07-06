@@ -152,7 +152,6 @@ export default function MovieDetails({
 
     try {
       const result = await createReview({
-        userId: user._id,
         movieId: id,
         rating,
         comment: reviewText.trim(),

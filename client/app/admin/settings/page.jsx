@@ -128,7 +128,11 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="site-name">Site Name</Label>
-                <Input id="site-name" defaultValue="CineScope" />
+                <Input
+                  id="site-name"
+                  value={settings.siteName}
+                  onChange={(e) => handleInputChange("siteName", e.target.value)}
+                />
                 <p className="text-muted-foreground text-sm">
                   This is the name that will be displayed in the browser tab and
                   throughout the application.
@@ -139,7 +143,10 @@ export default function SettingsPage() {
                 <Label htmlFor="site-description">Site Description</Label>
                 <Textarea
                   id="site-description"
-                  defaultValue="A comprehensive movie management platform."
+                  value={settings.siteDescription}
+                  onChange={(e) =>
+                    handleInputChange("siteDescription", e.target.value)
+                  }
                   className="min-h-[100px]"
                 />
                 <p className="text-muted-foreground text-sm">
@@ -149,7 +156,9 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="language">Default Language</Label>
-                <Select defaultValue="en">
+                <Select
+                  value={settings.language}
+                  onValueChange={(value) => handleInputChange("language", value)}>
                   <SelectTrigger id="language">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -165,7 +174,9 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select defaultValue="utc">
+                <Select
+                  value={settings.timezone}
+                  onValueChange={(value) => handleInputChange("timezone", value)}>
                   <SelectTrigger id="timezone">
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>

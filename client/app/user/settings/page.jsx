@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Bell, Check, Globe, Lock, Palette, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,22 +27,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import UserNav from "@/components/user-nav";
+import { updateProfile } from "@/services/admin.service";
+import { login } from "@/app/app/features/authSlice";
 
 export default function SettingsPage() {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [settings, setSettings] = useState({
+    siteName: "CineScope",
+    siteDescription: "A comprehensive movie management platform.",
+    language: "en",
+    timezone: "utc",
+  });
 
-  const handleSaveSettings = () => {
+  useEffect(() => {
+    if (user) {
+      setSettings((prev) => ({
+        ...prev,
+        language: user.language || "en",
+        timezone: user.timezone || "utc",
+      }));
+    }
+  }, [user]);
+
+  const handleSaveSettings = async () => {
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const res = await updateProfile({
+        id: user._id,
+        siteName: settings.siteName,
+        siteDescription: settings.siteDescription,
+        language: settings.language,
+        timezone: settings.timezone,
+      });
+
+      if (res.success) {
+        dispatch(
+          login({ user: res.data, token: localStorage.getItem("token") }),
+        );
+        toast.success("Settings saved successfully");
+      } else {
+        toast.error(res.message || "Failed to save settings");
+      }
+    } catch (error) {
+      toast.error("An error occurred while saving settings");
+    } finally {
       setIsSubmitting(false);
-      // toast({
-      //   title: "Settings saved",
-      //   description: "Your settings have been saved successfully.",
-      // });
-      toast("Settings saved");
-    }, 1000);
+    }
+  };
+
+  const handleInputChange = (id, value) => {
+    setSettings((prev) => ({ ...prev, [id]: value }));
   };
 
   return (
@@ -91,7 +129,11 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="site-name">Site Name</Label>
-                <Input id="site-name" defaultValue="CineScope" />
+                <Input
+                  id="site-name"
+                  value={settings.siteName}
+                  onChange={(e) => handleInputChange("siteName", e.target.value)}
+                />
                 <p className="text-muted-foreground text-sm">
                   This is the name that will be displayed in the browser tab and
                   throughout the application.
@@ -102,7 +144,10 @@ export default function SettingsPage() {
                 <Label htmlFor="site-description">Site Description</Label>
                 <Textarea
                   id="site-description"
-                  defaultValue="A comprehensive movie management platform."
+                  value={settings.siteDescription}
+                  onChange={(e) =>
+                    handleInputChange("siteDescription", e.target.value)
+                  }
                   className="min-h-[100px]"
                 />
                 <p className="text-muted-foreground text-sm">
@@ -112,7 +157,9 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="language">Default Language</Label>
-                <Select defaultValue="en">
+                <Select
+                  value={settings.language}
+                  onValueChange={(value) => handleInputChange("language", value)}>
                   <SelectTrigger id="language">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -128,7 +175,9 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select defaultValue="utc">
+                <Select
+                  value={settings.timezone}
+                  onValueChange={(value) => handleInputChange("timezone", value)}>
                   <SelectTrigger id="timezone">
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
@@ -367,194 +416,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Security Settings */}
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Configure security settings for your application.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="session-timeout">
-                  Session Timeout (minutes)
-                </Label>
-                <Input
-                  id="session-timeout"
-                  type="number"
-                  defaultValue="30"
-                  min="5"
-                  max="120"
-                />
-                <p className="text-muted-foreground text-sm">
-                  The amount of time a user can be inactive before being logged
-                  out.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="login-attempts">Maximum Login Attempts</Label>
-                <Input
-                  id="login-attempts"
-                  type="number"
-                  defaultValue="5"
-                  min="1"
-                  max="10"
-                />
-                <p className="text-muted-foreground text-sm">
-                  The number of failed login attempts before an account is
-                  locked.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="two-factor">Two-Factor Authentication</Label>
-                  <p className="text-muted-foreground text-sm">
-                    Require two-factor authentication for all admin users.
-                  </p>
-                </div>
-                <Switch id="two-factor" defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="force-password-change">
-                    Force Password Change
-                  </Label>
-                  <p className="text-muted-foreground text-sm">
-                    Force users to change their password every 90 days.
-                  </p>
-                </div>
-                <Switch id="force-password-change" />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Password Requirements</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="password-uppercase" defaultChecked />
-                    <Label htmlFor="password-uppercase">
-                      Require uppercase letters
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="password-numbers" defaultChecked />
-                    <Label htmlFor="password-numbers">Require numbers</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="password-symbols" defaultChecked />
-                    <Label htmlFor="password-symbols">Require symbols</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="password-min-length" defaultChecked />
-                    <Label htmlFor="password-min-length">
-                      Minimum length: 8 characters
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={handleSaveSettings}
-                disabled={isSubmitting}
-                className="ml-auto">
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        {/* Advanced Settings */}
-        <TabsContent value="advanced">
-          <Card>
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>
-                Configure advanced application settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="cache-duration">Cache Duration (minutes)</Label>
-                <Input
-                  id="cache-duration"
-                  type="number"
-                  defaultValue="60"
-                  min="5"
-                  max="1440"
-                />
-                <p className="text-muted-foreground text-sm">
-                  How long to cache data before refreshing from the database.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pagination-limit">Pagination Limit</Label>
-                <Select defaultValue="20">
-                  <SelectTrigger id="pagination-limit">
-                    <SelectValue placeholder="Select pagination limit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 items per page</SelectItem>
-                    <SelectItem value="20">20 items per page</SelectItem>
-                    <SelectItem value="50">50 items per page</SelectItem>
-                    <SelectItem value="100">100 items per page</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="debug-mode">Debug Mode</Label>
-                  <p className="text-muted-foreground text-sm">
-                    Enable detailed error messages and logging.
-                  </p>
-                </div>
-                <Switch id="debug-mode" />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="api-access">API Access</Label>
-                  <p className="text-muted-foreground text-sm">
-                    Allow external applications to access the API.
-                  </p>
-                </div>
-                <Switch id="api-access" defaultChecked />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="backup-frequency">
-                  Automatic Backup Frequency
-                </Label>
-                <Select defaultValue="daily">
-                  <SelectTrigger id="backup-frequency">
-                    <SelectValue placeholder="Select backup frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hourly">Hourly</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="never">Never</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={handleSaveSettings}
-                disabled={isSubmitting}
-                className="ml-auto">
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );

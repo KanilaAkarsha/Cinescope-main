@@ -423,10 +423,10 @@ export const createReviewForMovie = async (req, res) => {
   try {
     const { id: movieId } = req.params;
 
-    const { rating, comment, userId } = req.body;
+    const { rating, comment } = req.body;
 
     // ✅ Guard against missing userId
-    if (!userId) {
+    if (!req.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
@@ -438,7 +438,7 @@ export const createReviewForMovie = async (req, res) => {
     if (!movie) return res.status(404).json({ message: "Movie not found" });
 
     const newReview = {
-      userId, // ← comes from token via protect middleware
+      userId: req.userId, // ← comes from token via protect middleware
       rating: Number(rating), // ← cast to number to be safe
       comment: comment?.trim(),
       createdAt: new Date(),

@@ -12,11 +12,10 @@ export const getReviewsForMovie = async (movieId) => {
   }
 };
 
-export const createReview = async ({ movieId, rating, comment, userId }) => {
+export const createReview = async ({ movieId, rating, comment }) => {
   try {
     console.log("Sending review:", { movieId, rating, comment }); // ← debug
     const { data } = await API.post(`/api/movies/${movieId}/reviews`, {
-      userId,
       rating,
       comment,
     });

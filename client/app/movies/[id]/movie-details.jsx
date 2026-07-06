@@ -165,7 +165,6 @@ export default function MovieDetails({
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting review for movie:", id);
       const result = await createReview({
         movieId: id,
         rating,
@@ -177,7 +176,13 @@ export default function MovieDetails({
       }
 
       if (result?.data) {
-        setMovieReviews((current) => [result.data, ...current]);
+        // Add current user info to the review for immediate display
+        const newReview = {
+          ...result.data,
+          userName: user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "You",
+          userAvatar: user?.profilePicture || "",
+        };
+        setMovieReviews((current) => [newReview, ...current]);
       }
 
       setIsSubmitting(false);

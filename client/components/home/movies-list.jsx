@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 
 export default function MoviesList() {
   const [movies, setAllMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   
   const query = searchParams.get("query") || "";
@@ -21,6 +22,7 @@ export default function MoviesList() {
 
   const loadUserMovies = async (params) => {
     try {
+      setLoading(true);
       const queryParams = new URLSearchParams();
       if (params.query) queryParams.set("query", params.query);
       if (params.genre) queryParams.set("genre", params.genre);
@@ -32,11 +34,17 @@ export default function MoviesList() {
         ? `/api/movies/search?${queryParams.toString()}`
         : "/api/movies";
       const { data } = await API.get(url);
-      setAllMovies(data.movies);
+      setAllMovies(data.movies || []);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
+    } finally {
+      setLoading(false);
     }
   }; // Fetch or pass movies data here
+
+  if (loading) {
+    return <MovieListSkeleton />;
+  }
 
   if (!movies || movies.length === 0) {
     return (

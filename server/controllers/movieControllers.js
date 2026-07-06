@@ -280,12 +280,12 @@ export const getAllMoviesForUser = async (req, res) => {
     if (status && status !== "all") {
       const statusRegex = new RegExp(`^${status}$`, "i");
       if (!isAdmin && status.toLowerCase() === "draft") {
-        filter.status = { $ne: "Draft" }; // This might still be problematic if Draft is stored differently
+        filter.status = { $ne: "Draft" };
       } else {
         filter.status = { $regex: statusRegex };
       }
     } else if (!isAdmin) {
-      filter.status = { $not: /^draft$/i };
+      filter.status = { $ne: "Draft" };
     }
 
     let sortOption = { createdAt: -1 };

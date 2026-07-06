@@ -13,7 +13,7 @@ export default function MovieCard({ movie }) {
   return (
     <Link href={`/movies/${movie._id}`} target="_blank">
       <Card className="border-primary/20 hover:border-primary/50 overflow-hidden py-0 gap-0 transition-colors">
-        <div className="aspect-2/3 w-full overflow-hidden">
+        <div className="aspect-[2/3] w-full overflow-hidden">
           <Image
             width={300}
             height={450}

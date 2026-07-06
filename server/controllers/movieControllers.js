@@ -218,7 +218,7 @@ export const getAllMoviesForAdmin = async (req, res) => {
     }
 
     if (status && status !== "all") {
-      filter.status = new RegExp(`^${status}$`, "i");
+      filter.status = { $regex: new RegExp(`^${status}$`, "i") };
     }
 
     let sortOption = { createdAt: -1 };
@@ -282,7 +282,7 @@ export const getAllMoviesForUser = async (req, res) => {
       if (!isAdmin && status.toLowerCase() === "draft") {
         filter.status = { $ne: "Draft" }; // This might still be problematic if Draft is stored differently
       } else {
-        filter.status = statusRegex;
+        filter.status = { $regex: statusRegex };
       }
     } else if (!isAdmin) {
       filter.status = { $not: /^draft$/i };
@@ -479,6 +479,7 @@ export const createReviewForMovie = async (req, res) => {
       userId: req.userId, // ← comes from token via protect middleware
       rating: Number(rating), // ← cast to number to be safe
       comment: comment?.trim(),
+      status: "approved",
       createdAt: new Date(),
     };
 
@@ -514,13 +515,18 @@ export const getAllReviews = async (req, res) => {
   try {
     const movies = await Movie.find().populate(
       "reviews.userId",
-      "first_name last_name email",
+      "first_name last_name email profilePicture",
     );
     let allReviews = [];
     movies.forEach((movie) => {
       movie.reviews.forEach((review) => {
         allReviews.push({
-          ...review.toObject(),
+          _id: review._id,
+          rating: review.rating,
+          comment: review.comment,
+          status: review.status || "approved",
+          createdAt: review.createdAt,
+          userId: review.userId,
           movieTitle: movie.title,
           movieId: movie._id,
         });
@@ -538,10 +544,14 @@ export const deleteReview = async (req, res) => {
     const { id: movieId, reviewId: reviewIdFromParams } = req.params;
     const reviewId = reviewIdFromParams || req.params.reviewId;
 
+    if (!reviewId || !ObjectId.isValid(reviewId)) {
+      return res.status(400).json({ message: "Invalid review id" });
+    }
+
     let movie;
     if (movieId && ObjectId.isValid(movieId)) {
       movie = await Movie.findById(movieId);
-    } else if (ObjectId.isValid(reviewId)) {
+    } else {
       movie = await Movie.findOne({ "reviews._id": reviewId });
     }
 
@@ -567,6 +577,10 @@ export const updateReviewStatus = async (req, res) => {
     const reviewId = reviewIdFromParams || req.params.reviewId;
     const { status } = req.body;
 
+    if (!reviewId || !ObjectId.isValid(reviewId)) {
+      return res.status(400).json({ message: "Invalid review id" });
+    }
+
     if (!["pending", "approved", "rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -574,7 +588,7 @@ export const updateReviewStatus = async (req, res) => {
     let movie;
     if (movieId && ObjectId.isValid(movieId)) {
       movie = await Movie.findById(movieId);
-    } else if (ObjectId.isValid(reviewId)) {
+    } else {
       movie = await Movie.findOne({ "reviews._id": reviewId });
     }
 

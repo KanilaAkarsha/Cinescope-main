@@ -165,6 +165,7 @@ export default function MovieDetails({
     setIsSubmitting(true);
 
     try {
+      console.log("Submitting review for movie:", id);
       const result = await createReview({
         movieId: id,
         rating,
@@ -186,6 +187,7 @@ export default function MovieDetails({
       // Force refresh data since we're using server components for the initial load
       router.refresh();
     } catch (error) {
+      console.error("Submission failed:", error);
       setIsSubmitting(false);
       toast.error(
         error instanceof Error ? error.message : "Failed to submit review",

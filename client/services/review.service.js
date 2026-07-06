@@ -38,8 +38,8 @@ export const getAdminReviews = async () => {
       movieTitle: review.movieTitle,
       userId: review.userId?._id,
       userName:
-        `${review.userId?.first_name || "Unknown"} ${review.userId?.last_name || ""}`.trim(),
-      userAvatar: review.userId?.profilePicture,
+        `${review.userId?.first_name || "Anonymous"} ${review.userId?.last_name || ""}`.trim(),
+      userAvatar: review.userId?.profilePicture || "",
       rating: review.rating,
       comment: review.comment,
       status: review.status || "approved",

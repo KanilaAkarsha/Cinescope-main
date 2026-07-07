@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, Book, Clock, Download, Star } from "lucide-react";
@@ -126,9 +126,12 @@ export default function MovieDetails({
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [movieReviews, setMovieReviews] = useState(
-    Array.isArray(reviews) ? reviews : [],
-  );
+  const [movieReviews, setMovieReviews] = useState([]);
+  useEffect(() => {
+    if (Array.isArray(reviews)) {
+      setMovieReviews(reviews);
+    }
+  }, [reviews]);
   const downloadOptions = getDownloadOptions(movie);
   const [selectedDownload, setSelectedDownload] = useState(
     downloadOptions[0]?.value || "",

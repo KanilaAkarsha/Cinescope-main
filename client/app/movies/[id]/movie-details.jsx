@@ -179,9 +179,13 @@ export default function MovieDetails({
       }
 
       if (result?.data) {
+        // Use either _id or id from the result
+        const reviewId = result.data._id || result.data.id;
         // Add current user info to the review for immediate display
         const newReview = {
           ...result.data,
+          id: reviewId,
+          _id: reviewId,
           userName: user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "You",
           userAvatar: user?.profilePicture || "",
         };

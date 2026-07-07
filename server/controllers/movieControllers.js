@@ -483,8 +483,22 @@ export const createReviewForMovie = async (req, res) => {
       createdAt: new Date(),
     };
 
-    movie.reviews.push(newReview);
-    await movie.save();
+    try {
+      movie.reviews.push(newReview);
+      console.log("Saving movie with new review:", {
+        movieId,
+        userId: req.userId,
+        reviewsCount: movie.reviews.length,
+      });
+      await movie.save();
+      console.log("Movie saved successfully");
+    } catch (saveError) {
+      console.error("Error saving movie with review:", saveError);
+      return res.status(500).json({
+        message: "Error saving review to database",
+        error: saveError.message,
+      });
+    }
 
     const savedMovie = await Movie.findById(movieId).populate(
       "reviews.userId",

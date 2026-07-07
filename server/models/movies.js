@@ -27,7 +27,7 @@ const moviesSchema = new mongoose.Schema({
   },
   backdrop: {
     type: String,
-    required: true,
+    required: false,
   },
   rating: {
     type: Number,
@@ -47,11 +47,11 @@ const moviesSchema = new mongoose.Schema({
   },
   trailer: {
     type: String,
-    required: true,
+    required: false,
   },
   downloadLink: {
     type: String,
-    required: true,
+    required: false,
   },
   language: {
     type: String,

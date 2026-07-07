@@ -84,6 +84,7 @@ export default function MovieSelectors() {
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="released">Released</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>

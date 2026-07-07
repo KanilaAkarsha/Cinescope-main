@@ -11,11 +11,16 @@ export default function MoviesData({ searchParams = {} }) {
 
   useEffect(() => {
     const fetchMovies = async () => {
+      // Handle Next.js 15 searchParams being a Promise or having a custom structure
+      const actualParams = searchParams && typeof searchParams.then === 'function' 
+        ? await searchParams 
+        : searchParams;
+      
       setLoading(true);
       setError(null);
       try {
-        console.log("Admin movies fetching with params:", searchParams);
-        const res = await getAllMoviesForAdmin(searchParams);
+        console.log("Admin movies fetching with params:", actualParams);
+        const res = await getAllMoviesForAdmin(actualParams);
         console.log("Admin movies fetch raw response:", res);
 
         const { success, data, message } = res;

@@ -111,10 +111,10 @@ export default function MovieFilters({ onClose }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {/* language */}
+        {/* Status */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-muted-foreground">
-            Language
+            Status
           </label>
           <Select
             value={currentStatus}
@@ -123,11 +123,11 @@ export default function MovieFilters({ onClose }) {
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
-              {LANGUAGES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="released">Released</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
         </div>

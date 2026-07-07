@@ -218,7 +218,14 @@ export const getAllMoviesForAdmin = async (req, res) => {
     }
 
     if (status && status !== "all") {
-      filter.status = { $regex: new RegExp(`^${status}$`, "i") };
+      // Map "published" to common DB status "released" if needed, 
+      // or keep it flexible with regex.
+      let statusQuery = status;
+      if (status.toLowerCase() === "published") {
+        filter.status = { $in: [/published/i, /released/i] };
+      } else {
+        filter.status = { $regex: new RegExp(`^${status}$`, "i") };
+      }
     }
 
     let sortOption = { createdAt: -1 };

@@ -189,6 +189,7 @@ export default function MovieDetails({
           userName: user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "You",
           userAvatar: user?.profilePicture || "",
         };
+        console.log("New review:", newReview);
         setMovieReviews((current) => [newReview, ...current]);
       }
 

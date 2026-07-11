@@ -62,11 +62,11 @@ const getDownloadOptions = (movie) => {
       .filter((entry) => Boolean(entry.value));
   }
 
-  if (movie?.movieFileLink) {
+  if (movie?.downloadLink) {
     return [
       {
         label: "Default",
-        value: movie.movieFileLink,
+        value: movie.downloadLink,
       },
     ];
   }

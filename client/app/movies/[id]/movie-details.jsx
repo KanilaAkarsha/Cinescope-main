@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { createReview } from "@/services/review.service";
 
 const getDownloadOptions = (movie) => {
-  const rawLinks = movie?.movieFileLinks;
+  const rawLinks = movie?.downloadLink;
 
   if (Array.isArray(rawLinks)) {
     return rawLinks

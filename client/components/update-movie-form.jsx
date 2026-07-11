@@ -69,7 +69,7 @@ const normalizeMovieData = (movie) => {
     overview: resolveMovieField(movie, ["description", "plot"]),
     poster: resolveMovieField(movie, ["poster"]),
     backdrop: resolveMovieField(movie, ["backdrop"]),
-    movieFileLink: resolveMovieField(movie, ["downloadLink", "movieFileLink"]),
+    downloadLink: resolveMovieField(movie, ["downloadLink", "movieFileLink"]),
     trailer: resolveMovieField(movie, ["trailer", "trailerVideoLink"]),
     language,
     status: resolveMovieField(movie, ["status"]),
@@ -159,7 +159,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
     overview: normalizedMovie.overview,
     poster: normalizedMovie.poster,
     backdrop: normalizedMovie.backdrop,
-    movieFileLink: normalizedMovie.movieFileLink,
+    downloadLink: normalizedMovie.downloadLink,
     trailer: normalizedMovie.trailer,
     language: normalizedMovie.language,
     status: normalizedMovie.status,
@@ -189,7 +189,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
       overview: nextMovie.overview,
       poster: nextMovie.poster,
       backdrop: nextMovie.backdrop,
-      movieFileLink: nextMovie.movieFileLink,
+      downloadLink: nextMovie.downloadLink,
       trailer: nextMovie.trailer,
       language: nextMovie.language,
       status: nextMovie.status,
@@ -244,7 +244,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
       runtime: Number(formState.runtime),
 
-      downloadLink: formState.movieFileLink,
+      downloadLink: formState.downloadLink,
     };
 
     setIsSubmitting(true);
@@ -441,7 +441,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
             id="movieFileLink"
             name="movieFileLink"
             placeholder="URL to downloadable movie file"
-            value={formState?.movieFileLink}
+            value={formState?.downloadLink}
             onChange={handleChange}
           />
         </div>

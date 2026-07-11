@@ -360,6 +360,7 @@ export default function MovieDetails({
                         </SelectContent>
                       </Select>
                     )}
+                    <h2 className="text-2xl font-bold">Download</h2>
                     <Button asChild>
                       <a
                         href={selectedDownload || downloadOptions[0]?.value}
@@ -369,6 +370,11 @@ export default function MovieDetails({
                         download>
                         <Download className="mr-2 h-4 w-4" />
                         Download Movie
+                        {selectedDownload && (
+                          <span className="ml-2 text-sm font-medium">
+                            ({selectedDownload.split("/").pop()})
+                          </span>
+                        )}
                       </a>
                     </Button>
                   </div>

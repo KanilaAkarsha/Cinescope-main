@@ -343,7 +343,7 @@ export default function MovieDetails({
 
               {downloadOptions.length > 0 && (
                 <div className="mt-8">
-                  <div className="flex flex-col gap-3  sm:items-center">
+                  <div className="flex flex-col gap-3 sm:flex-row  sm:items-center">
                     {downloadOptions.length > 1 && (
                       <Select
                         value={selectedDownload}

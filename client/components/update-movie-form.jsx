@@ -436,10 +436,10 @@ export default function UpdateMovieForm({ showDialog, movie }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="movieFileLink">Movie File Link</Label>
+          <Label htmlFor="downloadLink">Movie File Link</Label>
           <Input
-            id="movieFileLink"
-            name="movieFileLink"
+            id="downloadLink"
+            name="downloadLink"
             placeholder="URL to downloadable movie file"
             value={formState?.downloadLink}
             onChange={handleChange}

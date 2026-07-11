@@ -343,7 +343,7 @@ export default function MovieDetails({
 
               {downloadOptions.length > 0 && (
                 <div className="mt-8">
-                  <div className="flex gap-3  sm:items-center">
+                  <div className="flex flex-col gap-3  sm:items-center">
                     {downloadOptions.length > 1 && (
                       <Select
                         value={selectedDownload}
@@ -370,7 +370,7 @@ export default function MovieDetails({
                         download>
                         <Download className="mr-2 h-4 w-4" />
                         Download Movie
-                        {movie.title && ( <span className="text-muted-foreground">({movie.title})</span>)}
+
                       </a>
                     </Button>
                   </div>

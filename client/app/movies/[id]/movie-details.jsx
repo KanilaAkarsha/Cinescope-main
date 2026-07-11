@@ -365,6 +365,7 @@ export default function MovieDetails({
                         href={selectedDownload || downloadOptions[0]?.value}
                         target="_blank"
                         rel="noreferrer"
+                        className="flex items-center justify-center gap-2"
                         download>
                         <Download className="mr-2 h-4 w-4" />
                         Download Movie

@@ -70,15 +70,7 @@ export default function HeaderNav({ isAuthenticated, user }) {
             About
           </Link>
 
-          {isAuthenticated && role === "admin" && (
-            <Link
-              href="/admin"
-              className="hover:text-primary text-sm font-medium transition-colors">
-              Dashboard
-            </Link>
-          )}
-
-          {isAuthenticated && role === "user" && (
+          {isAuthenticated && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -93,18 +85,18 @@ export default function HeaderNav({ isAuthenticated, user }) {
                       />
                     ) : (
                       <div className="bg-primary flex h-full w-full items-center justify-center text-xs text-white">
-                        {(user?.name || "U").charAt(0).toUpperCase()}
+                        {(user?.name || user?.first_name || "U").charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
-                  <span className="hidden lg:inline">{user?.name || "User"}</span>
+                  <span className="hidden lg:inline">{user?.name || user?.first_name || "User"}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.name || "User"}
+                      {user?.name || `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "User"}
                     </p>
                     <p className="text-muted-foreground text-xs leading-none">
                       {user?.email || "Not provided"}
@@ -112,14 +104,22 @@ export default function HeaderNav({ isAuthenticated, user }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {role === "admin" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      <SettingsIcon className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
-                  <Link href="/user/profile">
+                  <Link href={role === "admin" ? "/admin/profile" : "/user/profile"}>
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/user/settings">
+                  <Link href={role === "admin" ? "/admin/settings" : "/user/settings"}>
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Link>
@@ -182,47 +182,49 @@ export default function HeaderNav({ isAuthenticated, user }) {
             About
           </Link>
 
-          {isAuthenticated && role === "admin" && (
-            <Link
-              href="/admin"
-              onClick={closeMobile}
-              className="hover:text-primary hover:bg-primary/5 rounded-md px-3 py-2 text-sm font-medium transition-colors">
-              Dashboard
-            </Link>
-          )}
-
-          {isAuthenticated && role === "user" && (
+          {isAuthenticated && (
             <>
               <div className="border-t border-primary/10 my-1 pt-2 px-3 flex items-center gap-3">
                 <div className="h-10 w-10 overflow-hidden rounded-full border border-primary/20">
                   {user?.profilePicture || user?.avatar || user?.image ? (
                     <img
                       src={user.profilePicture || user.avatar || user.image}
-                      alt={user.name || "User"}
+                      alt={user.name || user.first_name || "User"}
                       className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="bg-primary flex h-full w-full items-center justify-center text-sm text-white">
-                      {(user?.name || "U").charAt(0).toUpperCase()}
+                      {(user?.name || user?.first_name || "U").charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{user?.name || "User"}</p>
+                  <p className="text-sm font-medium">
+                    {user?.name || `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "User"}
+                  </p>
                   <p className="text-muted-foreground text-xs">
                     {user?.email || "Not provided"}
                   </p>
                 </div>
               </div>
+              {role === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={closeMobile}
+                  className="hover:text-primary hover:bg-primary/5 rounded-md px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2">
+                  <SettingsIcon className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              )}
               <Link
-                href="/user/profile"
+                href={role === "admin" ? "/admin/profile" : "/user/profile"}
                 onClick={closeMobile}
                 className="hover:text-primary hover:bg-primary/5 rounded-md px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2">
                 <UserIcon className="h-4 w-4" />
                 Profile
               </Link>
               <Link
-                href="/user/settings"
+                href={role === "admin" ? "/admin/settings" : "/user/settings"}
                 onClick={closeMobile}
                 className="hover:text-primary hover:bg-primary/5 rounded-md px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2">
                 <SettingsIcon className="h-4 w-4" />

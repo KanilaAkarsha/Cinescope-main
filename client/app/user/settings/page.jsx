@@ -57,6 +57,16 @@ export default function SettingsPage() {
         ...prev,
         language: user.language || "en",
         timezone: user.timezone || "utc",
+        themeMode: user.themeMode || "system",
+        primaryColor: user.primaryColor || "blue",
+        fontSize: user.fontSize || "medium",
+        animations: user.animations ?? true,
+        emailNewMovie: user.emailNewMovie ?? true,
+        emailNewReview: user.emailNewReview ?? true,
+        emailNewUser: user.emailNewUser ?? false,
+        pushEnabled: user.pushEnabled ?? true,
+        pushNewMovie: user.pushNewMovie ?? true,
+        pushNewReview: user.pushNewReview ?? false,
       }));
     }
   }, [user]);
@@ -67,8 +77,7 @@ export default function SettingsPage() {
     try {
       const res = await updateProfile({
         id: user._id || user.id,
-        language: settings.language,
-        timezone: settings.timezone,
+        ...settings,
       });
 
       if (res.success) {

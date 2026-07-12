@@ -139,13 +139,25 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    const firstName = user.first_name || user.firstName || user.name?.split(" ")[0] || "";
+    const firstName =
+      user.first_name ||
+      user.firstName ||
+      (user.name && user.name.split(" ").length > 0 ? user.name.split(" ")[0] : "");
     const lastName =
-      user.last_name || user.lastName || user.name?.split(" ").slice(1).join(" ") || "";
+      user.last_name ||
+      user.lastName ||
+      (user.name && user.name.split(" ").length > 1
+        ? user.name.split(" ").slice(1).join(" ")
+        : "");
 
     setProfile((current) => ({
       ...current,
-      avatarUrl: user.profilePicture || user.avatar || user.image || current.avatarUrl || "",
+      avatarUrl:
+        user.profilePicture ||
+        user.avatar ||
+        user.image ||
+        current.avatarUrl ||
+        "",
       firstName,
       lastName,
       email: user.email || current.email || "",
@@ -256,16 +268,25 @@ export default function ProfilePage() {
           avatarUrl:
             result.data.profilePicture ||
             result.data.avatar ||
+            result.data.image ||
             current.avatarUrl,
-          firstName: result.data.first_name || current.firstName,
-          lastName: result.data.last_name || current.lastName,
+          firstName:
+            result.data.first_name ||
+            result.data.firstName ||
+            (result.data.name ? result.data.name.split(" ")[0] : current.firstName),
+          lastName:
+            result.data.last_name ||
+            result.data.lastName ||
+            (result.data.name && result.data.name.split(" ").length > 1
+              ? result.data.name.split(" ").slice(1).join(" ")
+              : current.lastName),
           email: result.data.email || current.email,
           bio: result.data.bio ?? current.bio,
           language: result.data.language || current.language,
           timezone: result.data.timezone || current.timezone,
           updatedAt: result.data.updatedAt || current.updatedAt,
         }));
-        
+
         // Update Redux state with the returned user data
         dispatch(
           login({

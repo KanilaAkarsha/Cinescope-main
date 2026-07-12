@@ -12,12 +12,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/app/app/features/authSlice";
 
 export default function AdminNav() {
   const { data: session } = useSession();
-  const user = session?.user;
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || session?.user;
   const router = useRouter();
   const dispatch = useDispatch();
 

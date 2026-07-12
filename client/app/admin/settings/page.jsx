@@ -71,6 +71,30 @@ export default function SettingsPage() {
         language: user.language || "en",
         timezone: user.timezone || "utc",
         bio: user.bio || "",
+        maintenanceMode: user.maintenanceMode ?? false,
+        themeMode: user.themeMode || "system",
+        primaryColor: user.primaryColor || "blue",
+        fontSize: user.fontSize || "medium",
+        animations: user.animations ?? true,
+        emailNewMovie: user.emailNewMovie ?? true,
+        emailNewReview: user.emailNewReview ?? true,
+        emailNewUser: user.emailNewUser ?? false,
+        pushEnabled: user.pushEnabled ?? true,
+        pushNewMovie: user.pushNewMovie ?? true,
+        pushNewReview: user.pushNewReview ?? false,
+        sessionTimeout: user.sessionTimeout || 30,
+        loginAttempts: user.loginAttempts || 5,
+        twoFactor: user.twoFactor ?? true,
+        forcePasswordChange: user.forcePasswordChange ?? false,
+        passwordUppercase: user.passwordUppercase ?? true,
+        passwordNumbers: user.passwordNumbers ?? true,
+        passwordSymbols: user.passwordSymbols ?? true,
+        passwordMinLength: user.passwordMinLength ?? true,
+        cacheDuration: user.cacheDuration || 60,
+        paginationLimit: user.paginationLimit || "20",
+        debugMode: user.debugMode ?? false,
+        apiAccess: user.apiAccess ?? true,
+        backupFrequency: user.backupFrequency || "daily",
       }));
     }
   }, [user]);
@@ -82,9 +106,7 @@ export default function SettingsPage() {
       // We'll save what the backend supports to the user profile
       const res = await updateProfile({
         id: user._id || user.id,
-        language: settings.language,
-        timezone: settings.timezone,
-        bio: settings.bio,
+        ...settings,
       });
 
       if (res.success) {

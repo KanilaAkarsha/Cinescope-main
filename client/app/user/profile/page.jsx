@@ -137,20 +137,33 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    const firstName = user.first_name || user.firstName || "";
-    const lastName = user.last_name || user.lastName || "";
+    const firstName =
+      user.first_name ||
+      user.firstName ||
+      (user.name && user.name.split(" ").length > 0 ? user.name.split(" ")[0] : "");
+    const lastName =
+      user.last_name ||
+      user.lastName ||
+      (user.name && user.name.split(" ").length > 1
+        ? user.name.split(" ").slice(1).join(" ")
+        : "");
 
     setProfile((current) => ({
       ...current,
-      avatarUrl: user.profilePicture || user.avatar || user.image || current.avatarUrl,
+      avatarUrl:
+        user.profilePicture ||
+        user.avatar ||
+        user.image ||
+        current.avatarUrl ||
+        "",
       firstName,
       lastName,
-      email: user.email || current.email,
-      bio: user.bio ?? current.bio,
-      language: user.language ?? current.language,
-      timezone: user.timezone ?? current.timezone,
-      role: user.role ?? current.role,
-      updatedAt: user.updatedAt ?? current.updatedAt,
+      email: user.email || current.email || "",
+      bio: user.bio || current.bio || "",
+      language: user.language || current.language || "en",
+      timezone: user.timezone || current.timezone || "utc",
+      role: user.role || current.role || "User",
+      updatedAt: user.updatedAt || current.updatedAt || null,
     }));
   }, [user]);
 
@@ -252,9 +265,18 @@ export default function ProfilePage() {
           avatarUrl:
             result.data.profilePicture ||
             result.data.avatar ||
+            result.data.image ||
             current.avatarUrl,
-          firstName: result.data.first_name || current.firstName,
-          lastName: result.data.last_name || current.lastName,
+          firstName:
+            result.data.first_name ||
+            result.data.firstName ||
+            (result.data.name ? result.data.name.split(" ")[0] : current.firstName),
+          lastName:
+            result.data.last_name ||
+            result.data.lastName ||
+            (result.data.name && result.data.name.split(" ").length > 1
+              ? result.data.name.split(" ").slice(1).join(" ")
+              : current.lastName),
           email: result.data.email || current.email,
           bio: result.data.bio ?? current.bio,
           language: result.data.language || current.language,

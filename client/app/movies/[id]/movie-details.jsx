@@ -19,7 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import { createReview } from "@/services/review.service";
+import { createReview } from "@/services/review.services";
 
 const getDownloadOptions = (movie) => {
   const rawLinks = movie?.downloadLink;
@@ -112,6 +112,16 @@ const getTrailerEmbedUrl = (url) => {
     return value;
   }
 };
+
+const formatBytes = (bytes) => {
+  if (!bytes) return "";
+
+  const units = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
+};
+
 
 export default function MovieDetails({
   movie,
@@ -342,8 +352,8 @@ export default function MovieDetails({
               </div>
 
               {downloadOptions.length > 0 && (
-                <div className="mt-8">
-                  <div className="flex flex-col gap-3 sm:flex-row  sm:items-center">
+                <div className="mt-10 space-y-3">
+                  <div className="flex flex-col gap-5 sm:items-center">
                     {downloadOptions.length > 1 && (
                       <Select
                         value={selectedDownload}
@@ -363,14 +373,18 @@ export default function MovieDetails({
                     <h2 className="text-2xl font-bold">Download</h2>
                     <Button asChild>
                       <a
-                        href={selectedDownload || downloadOptions[0]?.value}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-center gap-2"
-                        download>
+                          href={selectedDownload || downloadOptions[0]?.value}
+                          target="_blank"
+                          rel="noreferrer"
+                          download
+                      >
                         <Download className="mr-2 h-4 w-4" />
-                        Download Movie
 
+                        {movie.fileName || "Download Movie"}
+
+                        {movie.fileSize
+                            ? ` (${formatBytes(movie.fileSize)})`
+                            : ""}
                       </a>
                     </Button>
                   </div>

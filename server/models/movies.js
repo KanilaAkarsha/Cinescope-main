@@ -53,6 +53,14 @@ const moviesSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  fileName: {
+    type: String,
+    default: "",
+  },
+  fileSize: {
+    type: Number,
+    default: 0,
+  },
   language: {
     type: String,
     required: true,

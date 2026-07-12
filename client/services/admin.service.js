@@ -34,7 +34,7 @@ export const updateRole = async (id, role) => {
   }
 };
 
-// services/admin.service.js
+// services/admin.services.js
 export const updateProfile = async (profileData) => {
   try {
     console.log("profilePicture length:", profileData.profilePicture?.length);

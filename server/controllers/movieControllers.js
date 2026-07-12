@@ -2,6 +2,7 @@ import Movie from "../models/movies.js";
 import users from "../models/users.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { getGoogleDriveMetadata } from "../services/googleDrive.service.js";
 
 const { ObjectId } = mongoose.Types;
 
@@ -67,6 +68,22 @@ export const createMovie = async (req, res) => {
     const finalRuntime = runtime;
     const finalDownloadLink = downloadLink || movieFileLink;
 
+    let fileName = "";
+    let fileSize = 0;
+
+    if (finalDownloadLink) {
+      try {
+        const metadata = await getGoogleDriveMetadata(finalDownloadLink);
+
+        if (metadata) {
+          fileName = metadata.name;
+          fileSize = Number(metadata.size);
+        }
+      } catch (err) {
+        console.error("Google Drive Metadata Error:", err.message);
+      }
+    }
+
     if (
       !finalTitle ||
       !finalDescription ||
@@ -102,6 +119,8 @@ export const createMovie = async (req, res) => {
       status: finalStatus,
       runtime: finalRuntime,
       downloadLink: finalDownloadLink,
+      fileName,
+      fileSize,
     });
 
     return res
@@ -138,6 +157,22 @@ export const updateMovie = async (req, res) => {
       return res.status(400).json({ message: "Invalid movie id" });
     }
 
+    let fileName;
+    let fileSize;
+
+    if (downloadLink) {
+      try {
+        const metadata = await getGoogleDriveMetadata(downloadLink);
+
+        if (metadata) {
+          fileName = metadata.name;
+          fileSize = Number(metadata.size);
+        }
+      } catch (err) {
+        console.error("Google Drive Metadata Error:", err.message);
+      }
+    }
+
     const updatedMovie = await Movie.findByIdAndUpdate(
       id,
       {
@@ -156,6 +191,8 @@ export const updateMovie = async (req, res) => {
         status,
         runtime,
         downloadLink,
+        fileName,
+        fileSize,
       },
       { new: true },
     );

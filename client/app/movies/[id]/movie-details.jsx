@@ -377,11 +377,11 @@ export default function MovieDetails({
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="inline-flex w-fit items-center gap-2"
+                          className="inline-flex overflow-hidden sm:w-fit items-center gap-2"
                       >
                         <Download className="mr-2 h-4 w-4" />
 
-                        <span className="text-left truncate">
+                        <span className="text-left">
 
                         {movie.fileName || "Download Movie"}
 

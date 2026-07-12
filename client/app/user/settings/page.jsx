@@ -81,9 +81,22 @@ export default function SettingsPage() {
       });
 
       if (res.success) {
+        // Use the data returned from the server to update the local state and Redux
+        const updatedUser = res.data;
+
         dispatch(
-          login({ user: res.data, token: localStorage.getItem("token") }),
+          login({ user: updatedUser, token: localStorage.getItem("token") }),
         );
+
+        // Also update local settings state to reflect the actual saved data
+        setSettings((prev) => ({
+          ...prev,
+          ...updatedUser,
+          // Handle potential field name differences if necessary
+          language: updatedUser.language || prev.language,
+          timezone: updatedUser.timezone || prev.timezone,
+        }));
+
         toast.success("Settings saved successfully");
       } else {
         toast.error(res.message || "Failed to save settings");
@@ -110,10 +123,7 @@ export default function SettingsPage() {
 
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">General</span>
-          </TabsTrigger>
+
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">Appearance</span>
@@ -124,124 +134,9 @@ export default function SettingsPage() {
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Security</span>
-          </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            <span className="hidden sm:inline">Advanced</span>
-          </TabsTrigger>
+
         </TabsList>
 
-        {/* General Settings */}
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Configure general application settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="site-name">Site Name</Label>
-                <Input
-                  id="site-name"
-                  value={settings.siteName}
-                  onChange={(e) => handleInputChange("siteName", e.target.value)}
-                />
-                <p className="text-muted-foreground text-sm">
-                  This is the name that will be displayed in the browser tab and
-                  throughout the application.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="site-description">Site Description</Label>
-                <Textarea
-                  id="site-description"
-                  value={settings.siteDescription}
-                  onChange={(e) =>
-                    handleInputChange("siteDescription", e.target.value)
-                  }
-                  className="min-h-[100px]"
-                />
-                <p className="text-muted-foreground text-sm">
-                  This description will be used for SEO purposes.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="language">Default Language</Label>
-                <Select
-                  value={settings.language}
-                  onValueChange={(value) => handleInputChange("language", value)}>
-                  <SelectTrigger id="language">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                    <SelectItem value="ja">Japanese</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timezone">Timezone</Label>
-                <Select
-                  value={settings.timezone}
-                  onValueChange={(value) => handleInputChange("timezone", value)}>
-                  <SelectTrigger id="timezone">
-                    <SelectValue placeholder="Select timezone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="utc">UTC</SelectItem>
-                    <SelectItem value="est">
-                      Eastern Standard Time (EST)
-                    </SelectItem>
-                    <SelectItem value="cst">
-                      Central Standard Time (CST)
-                    </SelectItem>
-                    <SelectItem value="mst">
-                      Mountain Standard Time (MST)
-                    </SelectItem>
-                    <SelectItem value="pst">
-                      Pacific Standard Time (PST)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
-                  <p className="text-muted-foreground text-sm">
-                    Put the site in maintenance mode.
-                  </p>
-                </div>
-                <Switch
-                  id="maintenance-mode"
-                  checked={settings.maintenanceMode}
-                  onCheckedChange={(checked) =>
-                    handleInputChange("maintenanceMode", checked)
-                  }
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={handleSaveSettings}
-                disabled={isSubmitting}
-                className="ml-auto">
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
 
         {/* Appearance Settings */}
         <TabsContent value="appearance">

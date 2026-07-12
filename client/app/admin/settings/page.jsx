@@ -110,9 +110,22 @@ export default function SettingsPage() {
       });
 
       if (res.success) {
+        // Use the data returned from the server to update the local state and Redux
+        const updatedUser = res.data;
+        
         dispatch(
-          login({ user: res.data, token: localStorage.getItem("token") }),
+          login({ user: updatedUser, token: localStorage.getItem("token") }),
         );
+        
+        // Also update local settings state to reflect the actual saved data
+        setSettings((prev) => ({
+          ...prev,
+          ...updatedUser,
+          // Handle potential field name differences if necessary
+          language: updatedUser.language || prev.language,
+          timezone: updatedUser.timezone || prev.timezone,
+        }));
+
         toast.success("Settings saved successfully");
       } else {
         toast.error(res.message || "Failed to save settings");

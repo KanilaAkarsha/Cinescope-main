@@ -45,7 +45,7 @@ export const renderGoogleButton = async (container, options) => {
     size: "large",
     type: "standard",
     text: options.text,
-    shape: "rectangular",
+    shape: "pill",
     width: Math.min(container.clientWidth || 320, 400),
   });
 };

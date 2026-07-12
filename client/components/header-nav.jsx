@@ -76,11 +76,13 @@ export default function HeaderNav({ isAuthenticated, user }) {
                 <button
                   type="button"
                   className="flex items-center gap-2 hover:text-primary text-sm font-medium transition-colors cursor-pointer outline-hidden">
+                  <span className="hidden lg:inline">{user?.name || user?.first_name || "User"}</span>
                   <div className="h-8 w-8 overflow-hidden rounded-full border border-primary/20">
                     {user?.profilePicture || user?.avatar || user?.image ? (
                       <img
                         src={user.profilePicture || user.avatar || user.image}
                         alt={user.name || "User"}
+                        referrerPolicy="no-referrer"
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -89,7 +91,6 @@ export default function HeaderNav({ isAuthenticated, user }) {
                       </div>
                     )}
                   </div>
-                  <span className="hidden lg:inline">{user?.name || user?.first_name || "User"}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -190,6 +191,7 @@ export default function HeaderNav({ isAuthenticated, user }) {
                     <img
                       src={user.profilePicture || user.avatar || user.image}
                       alt={user.name || user.first_name || "User"}
+                      referrerPolicy="no-referrer"
                       className="h-full w-full object-cover"
                     />
                   ) : (

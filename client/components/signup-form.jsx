@@ -59,8 +59,9 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="flex flex-col">
-      <Card>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+      <div className="w-full max-w-sm">
+        <Card>
         <CardHeader>
           <CardTitle>Create Your Account</CardTitle>
           <CardDescription>
@@ -71,7 +72,7 @@ export default function SignupForm() {
           <form onSubmit={handleSubmit} noValidate>
             <div className="flex flex-col gap-6">
               <div className="flex flex-row gap-6 justify-between">
-                <div className="grid gap-3">
+                <div className="grid gap-2">
                   <Label htmlFor="first_name">First Name</Label>
                   <Input
                     id="first_name"
@@ -80,9 +81,10 @@ export default function SignupForm() {
                     autoComplete="given-name"
                     placeholder="First Name"
                     required
+                    className="h-11 sm:h-10"
                   />
                 </div>
-                <div className="grid gap-3">
+                <div className="grid gap-2">
                   <Label htmlFor="last_name">Last Name</Label>
                   <Input
                     id="last_name"
@@ -91,10 +93,11 @@ export default function SignupForm() {
                     autoComplete="family-name"
                     placeholder="Last Name"
                     required
+                    className="h-11 sm:h-10"
                   />
                 </div>
               </div>
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -103,9 +106,10 @@ export default function SignupForm() {
                   autoComplete="email"
                   placeholder="Enter your email"
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                 </div>
@@ -116,9 +120,10 @@ export default function SignupForm() {
                   autoComplete="current_password"
                   placeholder="Enter your password"
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Confirm Password</Label>
                 </div>
@@ -129,13 +134,19 @@ export default function SignupForm() {
                   autoComplete="current_password"
                   placeholder="Enter your password"
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="animate-spin" />} Sign Up
+              <div className="flex flex-col gap-4">
+                <Button
+                  type="submit"
+                  className="w-full h-11 sm:h-10 rounded-full"
+                  disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Sign Up
                 </Button>
-                <GoogleAuthButton action="signup" />
+                <div className="flex flex-col gap-2">
+                  <GoogleAuthButton action="signup" />
+                </div>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
@@ -147,6 +158,7 @@ export default function SignupForm() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

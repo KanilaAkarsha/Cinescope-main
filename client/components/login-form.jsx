@@ -138,17 +138,19 @@ export default function LoginForm() {
                 )}
 
                 {/* Action buttons */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                   <Button
                     type="submit"
-                    className="w-full h-11 sm:h-10"
+                    className="w-full h-11 sm:h-10 rounded-full"
                     disabled={isLoading}>
                     {isLoading && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Login
                   </Button>
-                  <GoogleAuthButton action="login" />
+                  <div className="flex flex-col gap-2">
+                    <GoogleAuthButton action="login" />
+                  </div>
                 </div>
 
                 {/* Sign-up link */}

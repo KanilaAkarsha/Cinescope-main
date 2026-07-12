@@ -22,7 +22,7 @@ import {
 } from "@/lib/utils";
 import { getAllGenres } from "@/lib/data";
 import { Textarea } from "@/components/ui/textarea";
-import { updateMovie } from "@/services/movie.services";
+import { updateMovie } from "@/services/movie.service";
 
 const parseCommaSeparated = (value) =>
   String(value || "")

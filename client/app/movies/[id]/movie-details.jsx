@@ -19,7 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import { createReview } from "@/services/review.services";
+import { createReview } from "@/services/review.service";
 
 const getDownloadOptions = (movie) => {
   const rawLinks = movie?.downloadLink;

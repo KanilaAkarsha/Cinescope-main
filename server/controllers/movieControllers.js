@@ -123,11 +123,6 @@ export const createMovie = async (req, res) => {
       fileSize,
     });
 
-    console.log("Download Link:", finalDownloadLink);
-
-    const metadata = await getGoogleDriveMetadata(finalDownloadLink);
-
-    console.log("Metadata:", metadata);
 
     return res
       .status(201)

@@ -139,21 +139,22 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    const firstName = user.first_name || user.name?.split(" ")[0] || "";
+    const firstName = user.first_name || user.firstName || user.name?.split(" ")[0] || "";
     const lastName =
-      user.last_name || user.name?.split(" ").slice(1).join(" ") || "";
+      user.last_name || user.lastName || user.name?.split(" ").slice(1).join(" ") || "";
 
-    setProfile({
-      avatarUrl: user.profilePicture || user.avatar || user.image || "",
+    setProfile((current) => ({
+      ...current,
+      avatarUrl: user.profilePicture || user.avatar || user.image || current.avatarUrl || "",
       firstName,
       lastName,
-      email: user.email || "",
-      bio: user.bio || "",
-      language: user.language || "en",
-      timezone: user.timezone || "utc",
-      role: user.role || "Admin",
-      updatedAt: user.updatedAt || null,
-    });
+      email: user.email || current.email || "",
+      bio: user.bio || current.bio || "",
+      language: user.language || current.language || "en",
+      timezone: user.timezone || current.timezone || "utc",
+      role: user.role || current.role || "Admin",
+      updatedAt: user.updatedAt || current.updatedAt || null,
+    }));
   }, [user]);
 
   const updateProfileField = (field) => (event) => {

@@ -45,7 +45,7 @@ export default function AdminNav() {
       <DropdownMenuTrigger asChild>
         <Avatar className="h-10 w-10 border-2 border-primary">
           <AvatarImage
-            src={user?.image || user?.profilePicture || user?.avatar}
+            src={user?.profilePicture || user?.avatar || user?.image}
             alt={`${user?.first_name} ${user?.last_name}`.trim()}
           />
           <AvatarFallback className="bg-primary text-white">

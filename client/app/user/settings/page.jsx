@@ -39,6 +39,16 @@ export default function SettingsPage() {
     siteDescription: "A comprehensive movie management platform.",
     language: "en",
     timezone: "utc",
+    themeMode: "system",
+    primaryColor: "blue",
+    fontSize: "medium",
+    animations: true,
+    emailNewMovie: true,
+    emailNewReview: true,
+    emailNewUser: false,
+    pushEnabled: true,
+    pushNewMovie: true,
+    pushNewReview: false,
   });
 
   useEffect(() => {
@@ -56,9 +66,7 @@ export default function SettingsPage() {
 
     try {
       const res = await updateProfile({
-        id: user._id,
-        siteName: settings.siteName,
-        siteDescription: settings.siteDescription,
+        id: user._id || user.id,
         language: settings.language,
         timezone: settings.timezone,
       });
@@ -206,7 +214,13 @@ export default function SettingsPage() {
                     Put the site in maintenance mode.
                   </p>
                 </div>
-                <Switch id="maintenance-mode" />
+                <Switch
+                  id="maintenance-mode"
+                  checked={settings.maintenanceMode}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("maintenanceMode", checked)
+                  }
+                />
               </div>
             </CardContent>
             <CardFooter>
@@ -233,7 +247,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Theme Mode</Label>
                 <RadioGroup
-                  defaultValue="system"
+                  value={settings.themeMode}
+                  onValueChange={(value) => handleInputChange("themeMode", value)}
                   className="flex flex-col space-y-1">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="light" id="theme-light" />
@@ -257,8 +272,9 @@ export default function SettingsPage() {
                     (color) => (
                       <div
                         key={color}
+                        onClick={() => handleInputChange("primaryColor", color)}
                         className={`h-10 cursor-pointer rounded-md border-2 ${
-                          color === "blue"
+                          settings.primaryColor === color
                             ? "border-primary"
                             : "border-transparent"
                         }`}
@@ -276,7 +292,7 @@ export default function SettingsPage() {
                                       ? "hsl(24.6, 95%, 53.1%)"
                                       : "hsl(316.6, 73.3%, 52.5%)",
                         }}>
-                        {color === "blue" && (
+                        {settings.primaryColor === color && (
                           <div className="flex h-full items-center justify-center">
                             <Check className="h-4 w-4 text-white" />
                           </div>
@@ -289,7 +305,9 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="font-size">Font Size</Label>
-                <Select defaultValue="medium">
+                <Select
+                  value={settings.fontSize}
+                  onValueChange={(value) => handleInputChange("fontSize", value)}>
                   <SelectTrigger id="font-size">
                     <SelectValue placeholder="Select font size" />
                   </SelectTrigger>
@@ -308,7 +326,13 @@ export default function SettingsPage() {
                     Enable animations throughout the application.
                   </p>
                 </div>
-                <Switch id="animations" defaultChecked />
+                <Switch
+                  id="animations"
+                  checked={settings.animations}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("animations", checked)
+                  }
+                />
               </div>
             </CardContent>
             <CardFooter>
@@ -342,7 +366,13 @@ export default function SettingsPage() {
                       Receive an email when a new movie is added.
                     </p>
                   </div>
-                  <Switch id="email-new-movie" defaultChecked />
+                  <Switch
+                    id="email-new-movie"
+                    checked={settings.emailNewMovie}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("emailNewMovie", checked)
+                    }
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -352,7 +382,13 @@ export default function SettingsPage() {
                       Receive an email when a new review is submitted.
                     </p>
                   </div>
-                  <Switch id="email-new-review" defaultChecked />
+                  <Switch
+                    id="email-new-review"
+                    checked={settings.emailNewReview}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("emailNewReview", checked)
+                    }
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -364,7 +400,13 @@ export default function SettingsPage() {
                       Receive an email when a new user registers.
                     </p>
                   </div>
-                  <Switch id="email-new-user" />
+                  <Switch
+                    id="email-new-user"
+                    checked={settings.emailNewUser}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("emailNewUser", checked)
+                    }
+                  />
                 </div>
               </div>
 
@@ -380,7 +422,13 @@ export default function SettingsPage() {
                       Allow the application to send push notifications.
                     </p>
                   </div>
-                  <Switch id="push-enabled" defaultChecked />
+                  <Switch
+                    id="push-enabled"
+                    checked={settings.pushEnabled}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("pushEnabled", checked)
+                    }
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -390,7 +438,13 @@ export default function SettingsPage() {
                       Receive a push notification when a new movie is added.
                     </p>
                   </div>
-                  <Switch id="push-new-movie" defaultChecked />
+                  <Switch
+                    id="push-new-movie"
+                    checked={settings.pushNewMovie}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("pushNewMovie", checked)
+                    }
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -401,7 +455,13 @@ export default function SettingsPage() {
                       submitted.
                     </p>
                   </div>
-                  <Switch id="push-new-review" />
+                  <Switch
+                    id="push-new-review"
+                    checked={settings.pushNewReview}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("pushNewReview", checked)
+                    }
+                  />
                 </div>
               </div>
             </CardContent>

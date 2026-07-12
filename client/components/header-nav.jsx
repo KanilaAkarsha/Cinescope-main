@@ -83,8 +83,21 @@ export default function HeaderNav({ isAuthenticated, user }) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="hover:text-primary text-sm font-medium transition-colors cursor-pointer">
-                  User
+                  className="flex items-center gap-2 hover:text-primary text-sm font-medium transition-colors cursor-pointer outline-hidden">
+                  <div className="h-8 w-8 overflow-hidden rounded-full border border-primary/20">
+                    {user?.profilePicture || user?.avatar || user?.image ? (
+                      <img
+                        src={user.profilePicture || user.avatar || user.image}
+                        alt={user.name || "User"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-primary flex h-full w-full items-center justify-center text-xs text-white">
+                        {(user?.name || "U").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="hidden lg:inline">{user?.name || "User"}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -180,11 +193,26 @@ export default function HeaderNav({ isAuthenticated, user }) {
 
           {isAuthenticated && role === "user" && (
             <>
-              <div className="border-t border-primary/10 my-1 pt-2 px-3">
-                <p className="text-sm font-medium">{user?.name || "User"}</p>
-                <p className="text-muted-foreground text-xs">
-                  {user?.email || "Not provided"}
-                </p>
+              <div className="border-t border-primary/10 my-1 pt-2 px-3 flex items-center gap-3">
+                <div className="h-10 w-10 overflow-hidden rounded-full border border-primary/20">
+                  {user?.profilePicture || user?.avatar || user?.image ? (
+                    <img
+                      src={user.profilePicture || user.avatar || user.image}
+                      alt={user.name || "User"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="bg-primary flex h-full w-full items-center justify-center text-sm text-white">
+                      {(user?.name || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{user?.name || "User"}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {user?.email || "Not provided"}
+                  </p>
+                </div>
               </div>
               <Link
                 href="/user/profile"

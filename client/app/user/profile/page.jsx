@@ -137,12 +137,12 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    const firstName = user.first_name || "";
-    const lastName = user.last_name || "";
+    const firstName = user.first_name || user.firstName || "";
+    const lastName = user.last_name || user.lastName || "";
 
     setProfile((current) => ({
       ...current,
-      avatarUrl: user.profilePicture || user.avatar || current.avatarUrl,
+      avatarUrl: user.profilePicture || user.avatar || user.image || current.avatarUrl,
       firstName,
       lastName,
       email: user.email || current.email,

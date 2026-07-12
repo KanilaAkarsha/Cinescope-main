@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { createReview } from "@/services/review.service";
+import { getGoogleDriveFileId } from "@/lib/utils";
 
 const getDownloadOptions = (movie) => {
   const rawLinks = movie?.downloadLink;
@@ -122,17 +123,6 @@ const formatBytes = (bytes) => {
   return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
 };
 
-const getGoogleDriveFileId = (url) => {
-  if (!url) return null;
-
-  const match =
-      url.match(/\/d\/([^/]+)/) ||
-      url.match(/[?&]id=([^&]+)/);
-
-  return match ? match[1] : null;
-};
-
-
 export default function MovieDetails({
   movie,
   reviews,
@@ -228,11 +218,13 @@ export default function MovieDetails({
     }
   };
 
-  const fileId = getGoogleDriveFileId(movie.downloadLink);
+  const fileId = getGoogleDriveFileId(selectedDownload || movie.downloadLink);
 
   const previewUrl = fileId
       ? `https://drive.google.com/file/d/${fileId}/preview`
       : null;
+
+  const downloadUrl = fileId? `https://drive.google.com/uc?export=download&id=${fileId}` : null;
 
   if (!movie && !isLoading) {
     return (
@@ -398,13 +390,18 @@ export default function MovieDetails({
                   <h2 className="text-2xl font-bold">Watch Now</h2>
 
               <div className="aspect-video overflow-hidden rounded-xl bg-black">
-
-                <iframe
+                {previewUrl ? (
+                  <iframe
                     src={previewUrl}
                     className="h-full w-full"
                     allow="autoplay"
                     allowFullScreen
-                />
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-white">
+                    <p>Preview not available for this link.</p>
+                  </div>
+                )}
               </div>
                  </div>
               )}

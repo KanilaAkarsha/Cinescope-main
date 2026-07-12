@@ -56,6 +56,24 @@ export function getAllMovieStatus() {
   return ["Published", "Draft", "Archived"];
 }
 
+export const getGoogleDriveFileId = (url) => {
+  if (!url) return null;
+
+  const match =
+      url.match(/\/d\/([^/]+)/) ||
+      url.match(/[?&]id=([^&]+)/);
+
+  return match ? match[1] : null;
+};
+
+export const convertGoogleDriveLink = (url) => {
+  const fileId = getGoogleDriveFileId(url);
+  if (fileId) {
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  return url;
+};
+
 export function capitalizeFirstLetter(str) {
   if (str.length === 0) {
     return "";

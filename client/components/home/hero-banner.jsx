@@ -37,7 +37,10 @@ export default function HeroBanner({
               Browse Movies
             </Button>
             <Button
-              onClick={() => router.push("/movies?filter=latest")}
+              onClick={() => {
+                const currentYear = new Date().getFullYear();
+                router.push(`/movies?sort=newest&year=${currentYear}`);
+              }}
               size="lg"
               variant="outline"
               className="bg-primary/10 backdrop-blur-xs border-primary/30 hover:bg-primary/20 text-white hover:text-white">

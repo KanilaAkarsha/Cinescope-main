@@ -19,6 +19,7 @@ import {
   getAllYears,
   cn,
   getAllLanguages,
+  convertGoogleDriveLink,
 } from "@/lib/utils";
 import { getAllGenres } from "@/lib/data";
 import { Textarea } from "@/components/ui/textarea";
@@ -217,34 +218,20 @@ export default function UpdateMovieForm({ showDialog, movie }) {
 
     const movieDoc = {
       title: formState.title,
-
       description: formState.overview,
-
       releaseYear: Number(formState.year),
-
       genre: genreTags,
-
       director: formState.director,
-
       cast: castTags,
-
       plot: formState.overview,
-
       poster: formState.poster,
-
       backdrop: formState.backdrop,
-
       rating: Number(formState.rating),
-
       trailer: formState.trailer,
-
       language: formState.language,
-
       status: formState.status,
-
       runtime: Number(formState.runtime),
-
-      downloadLink: formState.downloadLink,
+      downloadLink: convertGoogleDriveLink(formState.downloadLink),
     };
 
     setIsSubmitting(true);

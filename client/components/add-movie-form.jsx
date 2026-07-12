@@ -18,6 +18,7 @@ import {
   getAllYears,
   cn,
   getAllLanguages,
+  convertGoogleDriveLink,
 } from "@/lib/utils";
 import { getAllGenres } from "@/lib/data";
 import { Textarea } from "@/components/ui/textarea";
@@ -106,6 +107,7 @@ export default function AddMovieForm({ showDialog }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const downloadLink = formData.get("movieFileLink") || "N/A";
     const movie = {
       title: formData.get("title"),
       releaseYear: Number(formData.get("year")),
@@ -118,7 +120,7 @@ export default function AddMovieForm({ showDialog }) {
       plot: formData.get("overview") || formData.get("title"),
       poster: formData.get("poster"),
       backdrop: formData.get("backdrop"),
-      downloadLink: formData.get("movieFileLink") || "N/A",
+      downloadLink: downloadLink !== "N/A" ? convertGoogleDriveLink(downloadLink) : "N/A",
       trailer: formData.get("trailerVideoLink") || "N/A",
       status: formData.get("status"),
       language: formData.get("language") || "English",

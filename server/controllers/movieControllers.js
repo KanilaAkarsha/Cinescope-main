@@ -194,6 +194,7 @@ export const updateMovie = async (req, res) => {
         downloadLink,
         fileName,
         fileSize,
+        updatedAt: Date.now(),
       },
       { new: true },
     );
@@ -266,11 +267,11 @@ export const getAllMoviesForAdmin = async (req, res) => {
       }
     }
 
-    let sortOption = { createdAt: -1 };
+    let sortOption = { updatedAt: -1 };
     if (sort) {
       switch (sort) {
         case "newest":
-          sortOption = { createdAt: -1 };
+          sortOption = { updatedAt: -1 };
           break;
         case "oldest":
           sortOption = { createdAt: 1 };
@@ -333,11 +334,11 @@ export const getAllMoviesForUser = async (req, res) => {
       filter.status = { $ne: "Draft" };
     }
 
-    let sortOption = { createdAt: -1 };
+    let sortOption = { updatedAt: -1 };
     if (sort) {
       switch (sort) {
         case "newest":
-          sortOption = { createdAt: -1 };
+          sortOption = { updatedAt: -1 };
           break;
         case "oldest":
           sortOption = { createdAt: 1 };

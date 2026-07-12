@@ -381,7 +381,7 @@ export default function MovieDetails({
                       >
                         <Download className="mr-2 h-4 w-4" />
 
-                        <span className="text-left">
+                        <span className="text-left truncate">
 
                         {movie.fileName || "Download Movie"}
 

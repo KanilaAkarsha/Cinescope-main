@@ -10,6 +10,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+console.log("Cloudinary Configured:", {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY ? "Present" : "Missing",
+  api_secret: process.env.CLOUDINARY_API_SECRET ? "Present" : "Missing",
+});
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // Increased to 10MB
@@ -51,7 +57,7 @@ uploadRouter.post(
       return res.status(200).json({ url: result.secure_url });
     } catch (error) {
       console.error("Cloudinary upload error:", error);
-      return res.status(400).json({ 
+      return res.status(error.http_code || 400).json({ 
         message: "Image upload failed", 
         error: error.message,
         details: error.http_code ? `Status ${error.http_code}` : undefined

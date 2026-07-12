@@ -317,6 +317,9 @@ export const updateUser = async (req, res) => {
       backupFrequency,
     } = req.body;
 
+    console.log(`Update request for user: ${id || userId} from ${userId}`);
+    console.log("Update fields:", Object.keys(req.body));
+
     const targetUserId = id || userId;
     const isSelfUpdate = String(targetUserId) === String(userId);
     const requestingUserIsAdmin = await isAdminUser(userId);
@@ -383,6 +386,7 @@ export const updateUser = async (req, res) => {
     });
 
     await user.save();
+    console.log(`User ${targetUserId} updated successfully`);
 
     return res.status(200).json({
       message: "User updated successfully",
@@ -390,7 +394,10 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating user:", error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ 
+      message: "Update failed", 
+      error: error.message 
+    });
   }
 };
 

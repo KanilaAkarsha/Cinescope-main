@@ -371,13 +371,13 @@ export default function MovieDetails({
                       </Select>
                     )}
                     <h2 className="text-2xl font-bold">Download</h2>
-                    <Button asChild>
+                    <Button asChild >
                       <a
                           href={selectedDownload || downloadOptions[0]?.value}
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="flex items-center justify-center gap-2 overflow-hidden"
+                          className="items-center justify-center gap-2 overflow-hidden"
                       >
                         <Download className="mr-2 h-4 w-4" />
 

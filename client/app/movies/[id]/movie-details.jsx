@@ -122,6 +122,16 @@ const formatBytes = (bytes) => {
   return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
 };
 
+const getGoogleDriveFileId = (url) => {
+  if (!url) return null;
+
+  const match =
+      url.match(/\/d\/([^/]+)/) ||
+      url.match(/[?&]id=([^&]+)/);
+
+  return match ? match[1] : null;
+};
+
 
 export default function MovieDetails({
   movie,
@@ -217,6 +227,12 @@ export default function MovieDetails({
       );
     }
   };
+
+  const fileId = getGoogleDriveFileId(movie.downloadLink);
+
+  const previewUrl = fileId
+      ? `https://drive.google.com/file/d/${fileId}/preview`
+      : null;
 
   if (!movie && !isLoading) {
     return (
@@ -351,49 +367,6 @@ export default function MovieDetails({
                 </div>
               </div>
 
-              {downloadOptions.length > 0 && (
-                <div className="mt-10 space-y-3">
-                  <div className="flex flex-col gap-5">
-                    {downloadOptions.length > 1 && (
-                      <Select
-                        value={selectedDownload}
-                        onValueChange={setSelectedDownload}>
-                        <SelectTrigger className="w-full sm:w-56">
-                          <SelectValue placeholder="Choose resolution" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {downloadOptions.map((option) => (
-                            <SelectItem key={option.label} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <h2 className="text-2xl font-bold">Download</h2>
-                    <Button asChild >
-                      <a
-                          href={selectedDownload || downloadOptions[0]?.value}
-                          target="_blank"
-                          rel="noreferrer"
-                          download
-                          className="inline-flex overflow-hidden sm:w-fit items-center gap-2"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-
-                        <span className="text-left">
-
-                        {movie.fileName || "Download Movie"}
-
-                        {movie.fileSize
-                            ? ` (${formatBytes(movie.fileSize)})`
-                            : ""}
-                        </span>
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              )}
 
               {trailerUrl && (
                 <div className="mt-10 space-y-3">
@@ -419,6 +392,63 @@ export default function MovieDetails({
                   )}
                 </div>
               )}
+
+              {downloadOptions.length > 0 && (
+
+              <div className="aspect-video overflow-hidden rounded-xl bg-black">
+                <iframe
+                    src={previewUrl}
+                    className="h-full w-full"
+                    allow="autoplay"
+                    allowFullScreen
+                />
+              </div>
+              )}
+
+              {downloadOptions.length > 0 && (
+                  <div className="mt-10 space-y-3">
+                    <div className="flex flex-col gap-5">
+                      {downloadOptions.length > 1 && (
+                          <Select
+                              value={selectedDownload}
+                              onValueChange={setSelectedDownload}>
+                            <SelectTrigger className="w-full sm:w-56">
+                              <SelectValue placeholder="Choose resolution" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {downloadOptions.map((option) => (
+                                  <SelectItem key={option.label} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      )}
+                      <h2 className="text-2xl font-bold">Download</h2>
+                      <Button asChild >
+                        <a
+                            href={selectedDownload || downloadOptions[0]?.value}
+                            target="_blank"
+                            rel="noreferrer"
+                            download
+                            className="inline-flex overflow-hidden sm:w-fit items-center gap-2"
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+
+                          <span className="text-left">
+
+                        {movie.fileName || "Download Movie"}
+
+                            {movie.fileSize
+                                ? ` (${formatBytes(movie.fileSize)})`
+                                : ""}
+                        </span>
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+              )}
+
 
               <div className="mt-12">
                 <h2 className="text-2xl font-bold">Reviews</h2>

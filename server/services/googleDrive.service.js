@@ -3,9 +3,17 @@ import { drive } from "../config/googleDrive.js";
 export const extractGoogleDriveId = (url) => {
     if (!url) return null;
 
-    const match = url.match(/\/d\/([^/]+)/);
+    // https://drive.google.com/file/d/FILE_ID/view
+    let match = url.match(/\/d\/([^/]+)/);
 
-    return match ? match[1] : null;
+    if (match) return match[1];
+
+    // https://drive.google.com/uc?export=download&id=FILE_ID
+    match = url.match(/[?&]id=([^&]+)/);
+
+    if (match) return match[1];
+
+    return null;
 };
 
 export const getGoogleDriveMetadata = async (url) => {

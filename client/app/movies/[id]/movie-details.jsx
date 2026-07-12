@@ -395,7 +395,7 @@ export default function MovieDetails({
 
               {downloadOptions.length > 0 && (
                  <div className="mt-10 space-y-3">
-                  <h2 className="text-2xl font-bold">Watch Online</h2>
+                  <h2 className="text-2xl font-bold">Watch Now</h2>
 
               <div className="aspect-video overflow-hidden rounded-xl bg-black">
 

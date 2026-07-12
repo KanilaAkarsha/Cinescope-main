@@ -12,19 +12,31 @@ cloudinary.config({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // Increased to 10MB
 });
 const uploadRouter = express.Router();
 
 uploadRouter.post(
   "/image",
   protect,
-  upload.single("image"),
+  (req, res, next) => {
+    upload.single("image")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ message: "File upload error", error: err.message });
+      } else if (err) {
+        return res.status(400).json({ message: "Unknown upload error", error: err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       if (!req.file) {
+        console.warn("Upload attempt without file");
         return res.status(400).json({ message: "No file provided" });
       }
+
+      console.log(`Uploading file: ${req.file.originalname} (${req.file.mimetype})`);
 
       // Convert buffer to base64
       const b64 = Buffer.from(req.file.buffer).toString("base64");
@@ -35,10 +47,15 @@ uploadRouter.post(
         transformation: [{ width: 400, height: 400, crop: "fill" }],
       });
 
+      console.log("Upload successful:", result.secure_url);
       return res.status(200).json({ url: result.secure_url });
     } catch (error) {
-      console.error("Upload error:", error);
-      return res.status(400).json({ message: error.message });
+      console.error("Cloudinary upload error:", error);
+      return res.status(400).json({ 
+        message: "Image upload failed", 
+        error: error.message,
+        details: error.http_code ? `Status ${error.http_code}` : undefined
+      });
     }
   },
 );

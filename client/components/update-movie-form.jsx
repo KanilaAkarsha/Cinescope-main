@@ -441,7 +441,7 @@ export default function UpdateMovieForm({ showDialog, movie }) {
             id="downloadLink"
             name="downloadLink"
             placeholder="URL to downloadable movie file"
-            value={formState.downloadLink}
+            value={formState?.downloadLink}
             onChange={handleChange}
           />
         </div>

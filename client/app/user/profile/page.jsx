@@ -88,6 +88,7 @@ export default function ProfilePage() {
     const localPreviewUrl = URL.createObjectURL(file);
     setProfile((current) => ({ ...current, avatarUrl: localPreviewUrl }));
 
+    setIsSubmitting(true);
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -128,6 +129,8 @@ export default function ProfilePage() {
         error instanceof Error ? error.message : "Failed to upload image.",
         { id: toastId },
       );
+    } finally {
+      setIsSubmitting(false);
     }
 
     event.target.value = "";
@@ -272,6 +275,7 @@ export default function ProfilePage() {
         email: profile.email,
         bio: profile.bio,
         profilePicture: profile.avatarUrl,
+        cloudinary_id: profile.cloudinary_id,
         language: profile.language,
         timezone: profile.timezone,
       });
@@ -303,6 +307,7 @@ export default function ProfilePage() {
           bio: result.data.bio ?? current.bio,
           language: result.data.language || current.language,
           timezone: result.data.timezone || current.timezone,
+          cloudinary_id: result.data.cloudinary_id || current.cloudinary_id,
           updatedAt: result.data.updatedAt || current.updatedAt,
         }));
 

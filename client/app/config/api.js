@@ -1,4 +1,5 @@
 import axios from "axios";
+import { store } from "@/app/app/store";
 
 const API = axios.create({
   baseURL: process.env.NEXT_PUBLIC_URL || "http://localhost:5001",
@@ -6,13 +7,13 @@ const API = axios.create({
 
 API.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+    // Priority 1: Redux state (most up-to-date in-memory)
+    // Priority 2: Local storage (persistence)
+    const state = store.getState();
+    const token = state.auth.token || localStorage.getItem("token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // Log for debugging (only in development or if needed)
-      // console.log(`Request to ${config.url} with token: ${token.substring(0, 10)}...`);
-    } else {
-      // console.warn(`Request to ${config.url} without token`);
     }
   }
   return config;

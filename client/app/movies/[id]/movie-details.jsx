@@ -377,15 +377,18 @@ export default function MovieDetails({
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="items-center justify-center gap-2 overflow-hidden"
+                          className="flex w-full items-center justify-start gap-2"
                       >
                         <Download className="mr-2 h-4 w-4" />
+
+                        <span className="text-left truncate">
 
                         {movie.fileName || "Download Movie"}
 
                         {movie.fileSize
                             ? ` (${formatBytes(movie.fileSize)})`
                             : ""}
+                        </span>
                       </a>
                     </Button>
                   </div>

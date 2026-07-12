@@ -54,11 +54,11 @@ export default function ProfilePage() {
   const { data: session } = useSession();
   const user = reduxUser || session?.user;
   const [profile, setProfile] = useState({
-    avatarUrl: "/placeholder.svg?height=128&width=128",
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@cinescope.com",
-    bio: "Administrator of the CineScope platform. Movie enthusiast and critic.",
+    avatarUrl: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    bio: "",
     language: "en",
     timezone: "utc",
   });
@@ -235,6 +235,11 @@ export default function ProfilePage() {
   };
 
   const handleSaveProfile = async () => {
+    if (!isEditing) {
+      setIsEditing(true);
+      return;
+    }
+
     const userId = user?._id || user?.id;
     if (!userId) {
       toast.error("No active session found.");
@@ -565,9 +570,9 @@ export default function ProfilePage() {
                 <CardFooter>
                   <Button
                     onClick={handleSaveProfile}
-                    disabled={isSubmitting || !isEditing}
+                    disabled={isSubmitting}
                     className="ml-auto">
-                    {isSubmitting ? "Saving..." : "Save Changes"}
+                    {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Edit Profile"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -639,9 +644,9 @@ export default function ProfilePage() {
                 <CardFooter>
                   <Button
                     onClick={handleSaveProfile}
-                    disabled={isSubmitting || !isEditing}
+                    disabled={isSubmitting}
                     className="ml-auto">
-                    {isSubmitting ? "Saving..." : "Save Changes"}
+                    {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Edit Profile"}
                   </Button>
                 </CardFooter>
               </Card>

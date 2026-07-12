@@ -394,8 +394,11 @@ export default function MovieDetails({
               )}
 
               {downloadOptions.length > 0 && (
+                 <div className="mt-10 space-y-3">
+                  <h2 className="text-2xl font-bold">Watch Online</h2>
 
               <div className="aspect-video overflow-hidden rounded-xl bg-black">
+
                 <iframe
                     src={previewUrl}
                     className="h-full w-full"
@@ -403,6 +406,7 @@ export default function MovieDetails({
                     allowFullScreen
                 />
               </div>
+                 </div>
               )}
 
               {downloadOptions.length > 0 && (

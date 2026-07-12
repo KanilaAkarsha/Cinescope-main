@@ -5,13 +5,13 @@ export const uploadImage = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
 
-    const { data } = await API.post("/api/upload/image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const { data } = await API.post("/api/upload/image", formData);
 
-    return { success: true, url: data.url };
+    return { 
+      success: true, 
+      url: data.url, 
+      public_id: data.public_id 
+    };
   } catch (error) {
     return {
       success: false,

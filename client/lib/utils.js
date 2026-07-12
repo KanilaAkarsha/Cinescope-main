@@ -80,3 +80,12 @@ export function capitalizeFirstLetter(str) {
   }
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function getCloudinaryUrl(publicId) {
+  if (!publicId) return null;
+  // If it's already a URL, return it
+  if (publicId.startsWith("http")) return publicId;
+  
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dq7vkvvpx"; // Fallback to a known cloud name if needed, but better to use env
+  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/v1/${publicId}`;
+}

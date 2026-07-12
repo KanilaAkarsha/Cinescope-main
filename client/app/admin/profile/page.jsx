@@ -43,6 +43,7 @@ import API from "@/app/config/api";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/app/app/features/authSlice";
 import { uploadImage } from "@/services/upload.service";
+import { getCloudinaryUrl } from "@/lib/utils";
 
 export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,8 +98,12 @@ export default function ProfilePage() {
         throw new Error(result.message);
       }
 
-      // ✅ store Cloudinary URL
-      setProfile((current) => ({ ...current, avatarUrl: result.url }));
+      // ✅ store Cloudinary URL and ID
+      setProfile((current) => ({ 
+        ...current, 
+        avatarUrl: result.url,
+        cloudinary_id: result.public_id
+      }));
       toast.success("Image uploaded!", { id: toastId });
 
       // Automatically save profile picture to backend
@@ -107,6 +112,7 @@ export default function ProfilePage() {
         const updateResult = await updateProfile({
           id: userId,
           profilePicture: result.url,
+          cloudinary_id: result.public_id,
         });
 
         if (updateResult.success && updateResult.data) {
@@ -153,11 +159,13 @@ export default function ProfilePage() {
     setProfile((current) => ({
       ...current,
       avatarUrl:
+        getCloudinaryUrl(user.cloudinary_id) ||
         user.profilePicture ||
         user.avatar ||
         user.image ||
         current.avatarUrl ||
         "",
+      cloudinary_id: user.cloudinary_id || current.cloudinary_id || null,
       firstName,
       lastName,
       email: user.email || current.email || "",

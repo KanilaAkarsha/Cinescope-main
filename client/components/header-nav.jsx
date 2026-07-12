@@ -23,6 +23,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { logout } from "@/app/app/features/authSlice";
+import { getCloudinaryUrl } from "@/lib/utils";
 
 export default function HeaderNav({ isAuthenticated, user }) {
   const router = useRouter();
@@ -78,9 +79,9 @@ export default function HeaderNav({ isAuthenticated, user }) {
                   className="flex items-center gap-2 hover:text-primary text-sm font-medium transition-colors cursor-pointer outline-hidden">
                   <span className="hidden lg:inline">{user?.name || user?.first_name || "User"}</span>
                   <div className="h-8 w-8 overflow-hidden rounded-full border border-primary/20">
-                    {user?.profilePicture || user?.avatar || user?.image ? (
+                    {getCloudinaryUrl(user?.cloudinary_id) || user?.profilePicture || user?.avatar || user?.image ? (
                       <img
-                        src={user.profilePicture || user.avatar || user.image}
+                        src={getCloudinaryUrl(user?.cloudinary_id) || user.profilePicture || user.avatar || user.image}
                         alt={user.name || "User"}
                         referrerPolicy="no-referrer"
                         className="h-full w-full object-cover"
@@ -187,9 +188,9 @@ export default function HeaderNav({ isAuthenticated, user }) {
             <>
               <div className="border-t border-primary/10 my-1 pt-2 px-3 flex items-center gap-3">
                 <div className="h-10 w-10 overflow-hidden rounded-full border border-primary/20">
-                  {user?.profilePicture || user?.avatar || user?.image ? (
+                  {getCloudinaryUrl(user?.cloudinary_id) || user?.profilePicture || user?.avatar || user?.image ? (
                     <img
-                      src={user.profilePicture || user.avatar || user.image}
+                      src={getCloudinaryUrl(user?.cloudinary_id) || user.profilePicture || user.avatar || user.image}
                       alt={user.name || user.first_name || "User"}
                       referrerPolicy="no-referrer"
                       className="h-full w-full object-cover"

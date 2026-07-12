@@ -14,6 +14,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/app/app/features/authSlice";
+import { getCloudinaryUrl } from "@/lib/utils";
 
 export default function AdminNav() {
   const { data: session } = useSession();
@@ -46,8 +47,8 @@ export default function AdminNav() {
       <DropdownMenuTrigger asChild>
         <Avatar className="h-10 w-10 border-2 border-primary">
           <AvatarImage
-            src={user?.profilePicture || user?.avatar || user?.image}
-            alt={`${user?.first_name} ${user?.last_name}`.trim()}
+            src={getCloudinaryUrl(user?.cloudinary_id) || user?.profilePicture || user?.avatar || user?.image}
+            alt={`${user?.first_name || ""} ${user?.last_name || ""}`.trim()}
           />
           <AvatarFallback className="bg-primary text-white">
             {initials}

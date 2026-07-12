@@ -27,6 +27,9 @@ export const sanitizeUser = (user) => {
   if (isInvalidUrl(safeUser.avatar)) {
     safeUser.avatar = "";
   }
+  if (isInvalidUrl(safeUser.cloudinary_id)) {
+    safeUser.cloudinary_id = null;
+  }
 
   // Ensure consistency between avatar and profilePicture
   if (safeUser.avatar && !safeUser.profilePicture) {

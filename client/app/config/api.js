@@ -9,6 +9,10 @@ API.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Log for debugging (only in development or if needed)
+      // console.log(`Request to ${config.url} with token: ${token.substring(0, 10)}...`);
+    } else {
+      // console.warn(`Request to ${config.url} without token`);
     }
   }
   return config;

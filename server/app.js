@@ -8,7 +8,11 @@ import passport from "passport";
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://cinescope-main.vercel.app"],
+  origin: [
+    "http://localhost:3000",
+    "https://cinescope-main.vercel.app",
+    "https://cinescope-main.onrender.com"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,

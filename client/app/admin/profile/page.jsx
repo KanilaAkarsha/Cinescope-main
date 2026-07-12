@@ -245,6 +245,13 @@ export default function ProfilePage() {
 
     setIsSubmitting(true);
 
+    // Safety check: Don't allow saving if the avatarUrl is a temporary blob
+    if (profile.avatarUrl && profile.avatarUrl.startsWith("blob:")) {
+      toast.error("Please wait for the image to finish uploading.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await updateProfile({
         id: userId,

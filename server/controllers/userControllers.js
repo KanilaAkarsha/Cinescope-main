@@ -86,6 +86,14 @@ const applyProfileUpdates = (user, updates) => {
 
   fields.forEach((field) => {
     if (updates[field] !== undefined) {
+      // Reject temporary blob URLs for profile pictures or avatars
+      if (
+        (field === "profilePicture" || field === "avatar") &&
+        typeof updates[field] === "string" &&
+        updates[field].startsWith("blob:")
+      ) {
+        return;
+      }
       user[field] = updates[field];
     }
   });

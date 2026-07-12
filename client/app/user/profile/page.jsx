@@ -235,16 +235,24 @@ export default function ProfilePage() {
   };
 
   const handleSaveProfile = async () => {
-    if (!user?._id) {
+    const userId = user?._id || user?.id;
+    if (!userId) {
       toast.error("No active session found.");
       return;
     }
 
     setIsSubmitting(true);
 
+    // Safety check: Don't allow saving if the avatarUrl is a temporary blob
+    if (profile.avatarUrl && profile.avatarUrl.startsWith("blob:")) {
+      toast.error("Please wait for the image to finish uploading.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await updateProfile({
-        id: user._id || user.id,
+        id: userId,
         first_name: profile.firstName,
         last_name: profile.lastName,
         email: profile.email,

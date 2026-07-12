@@ -43,6 +43,9 @@ export default function MoviesData({ searchParams = {} }) {
             trailer: movie.trailer || movie.trailerVideoLink || "",
             language: movie.language || "",
             releaseDate: movie.releaseYear || movie.year || "",
+            downloadLink: movie.downloadLink || movie.movieFileLink || "",
+            movieFileLink: movie.movieFileLink || movie.downloadLink || "",
+            trailerVideoLink: movie.trailerVideoLink || movie.trailer || "",
           }));
           setMovies(refinedMovies);
         } else {

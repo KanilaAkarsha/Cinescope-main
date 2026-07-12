@@ -29,6 +29,7 @@ export default async function MoviesData({ query = "" }) {
       directors: movie.director || movie.directors || "",
       cast: movie.cast,
       trailer: movie.trailer || movie.trailerVideoLink || "",
+      downloadLink: movie.downloadLink || movie.movieFileLink || "",
       language: movie.language || "",
       releaseDate: movie.releaseDate ?? movie.releaseYear ?? movie.year,
     }));

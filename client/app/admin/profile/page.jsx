@@ -100,6 +100,24 @@ export default function ProfilePage() {
       // ✅ store Cloudinary URL
       setProfile((current) => ({ ...current, avatarUrl: result.url }));
       toast.success("Image uploaded!", { id: toastId });
+
+      // Automatically save profile picture to backend
+      const userId = user?._id || user?.id;
+      if (userId) {
+        const updateResult = await updateProfile({
+          id: userId,
+          profilePicture: result.url,
+        });
+
+        if (updateResult.success && updateResult.data) {
+          dispatch(
+            login({
+              token: localStorage.getItem("token"),
+              user: updateResult.data,
+            }),
+          );
+        }
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image.",
@@ -246,6 +264,8 @@ export default function ProfilePage() {
           timezone: result.data.timezone || current.timezone,
           updatedAt: result.data.updatedAt || current.updatedAt,
         }));
+        
+        // Update Redux state with the returned user data
         dispatch(
           login({
             token: localStorage.getItem("token"),
@@ -386,9 +406,9 @@ export default function ProfilePage() {
               <div className="text-center">
                 <h3 className="text-xl font-bold">
                   {`${profile.firstName} ${profile.lastName}`.trim() ||
-                    `${user?.firstName} ${user?.lastName}` ||
+                    `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
                     user?.name ||
-                    ""}
+                    "Admin User"}
                 </h3>
                 <p className="text-muted-foreground text-sm">
                   {profile.email || user?.email || ""}

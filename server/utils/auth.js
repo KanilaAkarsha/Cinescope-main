@@ -11,20 +11,20 @@ export const sanitizeUser = (user) => {
     return null;
   }
 
-  const safeUser = typeof user.toObject === "function" ? user.toObject() : { ...user };
+  const userObj = typeof user.toObject === "function" ? user.toObject() : { ...user };
+  const safeUser = { ...userObj };
   delete safeUser.password;
 
-  // Clean up any temporary blob URLs that might have leaked into the database
-  if (
-    typeof safeUser.profilePicture === "string" &&
-    safeUser.profilePicture.startsWith("blob:")
-  ) {
+  // Function to check if a URL is a temporary blob URL
+  const isInvalidUrl = (url) => {
+    return typeof url === "string" && (url.startsWith("blob:") || url.startsWith("data:"));
+  };
+
+  // Clean up any temporary blob or data URLs that might have leaked into the database
+  if (isInvalidUrl(safeUser.profilePicture)) {
     safeUser.profilePicture = "";
   }
-  if (
-    typeof safeUser.avatar === "string" &&
-    safeUser.avatar.startsWith("blob:")
-  ) {
+  if (isInvalidUrl(safeUser.avatar)) {
     safeUser.avatar = "";
   }
 
